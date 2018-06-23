@@ -1,0 +1,11 @@
+version: "3"
+services:
+
+  camara:
+    build:
+      context: .
+    env_file:
+      - .env
+    volumes:
+      - ./data:/mnt/data
+    command: ["scrapy", "crawl", "camara", "-o", "/mnt/data/camara.csv"]

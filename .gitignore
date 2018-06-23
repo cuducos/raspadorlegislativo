@@ -1,0 +1,5 @@
+*.pyc
+.env
+.scrapy/
+__pycache__/
+data/*.csv
