@@ -9,7 +9,7 @@ RUN apk update && \
     apk add build-base g++ gcc libffi-dev libxslt-dev openssl-dev && \
     pip install -U pip && \
     pip install -U pipenv && \
-    pipenv install --system
+    pipenv install --system --dev
 
 ADD scrapy.cfg scrapy.cfg
 ADD raspadorlegislativo /code/raspadorlegislativo

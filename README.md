@@ -15,7 +15,7 @@ $ cp .env.sample .env
 Requer [Docker](https://docs.docker.com/install/) e
 [Docker Compose](https://docs.docker.com/compose/install/).
 
-Inicie os containers:
+Colete os projetos de lei da Câmara e do Senado e salve os dados em um CSV com:
 
 ```sh
 $ docker-compose up
@@ -34,8 +34,11 @@ $ pipenv install
 $ pipenv shell
 ```
 
-Colete os projetos de lei da Câmara e salve os dados em um CSV com:
+Colete os projetos de lei da Câmara e do Senado e salve os dados em um CSV com:
 
 ```sh
-$ scrapy crawl camara -o data/camara.csv
+$ scrapy crawl camara
+$ scrapy crawl senado
 ```
+
+Verifique o resultado no diretótio `data/`.

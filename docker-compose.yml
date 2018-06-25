@@ -7,5 +7,21 @@ services:
     env_file:
       - .env
     volumes:
-      - ./data:/mnt/data
-    command: ["scrapy", "crawl", "camara", "-o", "/mnt/data/camara.csv"]
+      - ./:/code
+    depends_on:
+      - memcached
+    command: ["scrapy", "crawl", "camara"]
+
+  senado:
+    build:
+      context: .
+    env_file:
+      - .env
+    volumes:
+      - ./:/code
+    depends_on:
+      - memcached
+    command: ["scrapy", "crawl", "senado"]
+
+  memcached:
+    image: memcached:1.5.8-alpine

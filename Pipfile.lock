@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "7b6ba35390ce530af6c0cca46ffb1bf504152362621ed63d6c0830fbc2bc180e"
+            "sha256": "8ee82802fe1b3b4894f535c2b57e83cb598ee25458591dcd7da4ec883b37f8a0"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -234,6 +234,14 @@
             "index": "pypi",
             "version": "==3.1"
         },
+        "python-memcached": {
+            "hashes": [
+                "sha256:4dac64916871bd3550263323fc2ce18e1e439080a2d5670c594cf3118d99b594",
+                "sha256:a2e28637be13ee0bf1a8b6843e7490f9456fd3f2a4cb60471733c7b5d5557e4f"
+            ],
+            "index": "pypi",
+            "version": "==1.59"
+        },
         "queuelib": {
             "hashes": [
                 "sha256:42b413295551bdc24ed9376c1a2cd7d0b1b0fa4746b77b27ca2b797a276a1a17",
@@ -248,6 +256,13 @@
             ],
             "index": "pypi",
             "version": "==1.5.0"
+        },
+        "scrapy-memcached-cache": {
+            "hashes": [
+                "sha256:0e802e47c12352b648c0853a7ccd103f515631084441e15e6c2e1a457b2f5131"
+            ],
+            "index": "pypi",
+            "version": "==0.0.2"
         },
         "service-identity": {
             "hashes": [
@@ -306,6 +321,13 @@
                 "sha256:c39efa13fbdeb4506c476c9b3babf6a718da943dab7811c206005a4a956c080c"
             ],
             "version": "==4.3.0"
+        },
+        "ipdb": {
+            "hashes": [
+                "sha256:7081c65ed7bfe7737f83fa4213ca8afd9617b42ff6b3f1daf9a3419839a2a00a"
+            ],
+            "index": "pypi",
+            "version": "==0.11"
         },
         "ipython": {
             "hashes": [

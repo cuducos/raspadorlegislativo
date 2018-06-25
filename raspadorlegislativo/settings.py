@@ -86,10 +86,11 @@ DOWNLOADER_MIDDLEWARES = {
 # Enable and configure HTTP caching (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
 HTTPCACHE_ENABLED = True
-HTTPCACHE_EXPIRATION_SECS = 24 * 60 * 60  # 1 day
-HTTPCACHE_DIR = 'httpcache'
+HTTPCACHE_EXPIRATION_SECS = 3 * 60 * 60  # 3 hours
 HTTPCACHE_IGNORE_HTTP_CODES = []
-HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+HTTPCACHE_STORAGE = 'scrapy_memcached_cache.MemcachedCacheStorage'
 
 KEYWORDS = config('KEYWORDS', cast=Keyword())
 START_DATE = config('START_DATE')
+FEED_FORMAT = 'csv'
+MEMCACHED_LOCATION = config('MEMCACHED_LOCATION')

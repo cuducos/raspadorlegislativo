@@ -1,30 +1,26 @@
 import json
-import os
 from functools import partial
-from tempfile import mkstemp
 
-from scrapy import Request, Spider
+from scrapy import Request
 
 from raspadorlegislativo import settings
-from raspadorlegislativo.utils.pdf import extract_text
+from raspadorlegislativo.spiders import Spider
+from raspadorlegislativo.utils.feed import feed
 from raspadorlegislativo.utils.requests import JsonRequest
 
 
 class CamaraSpider(Spider):
     name = 'camara'
     subjects = ('PL',)
-    base_url = (
-        'https://dadosabertos.camara.leg.br/api/v2/proposicoes'
-        '?siglaTipo={}&dataInicio={}'
-    )
-    human_url = (
-        'http://www.camara.gov.br/proposicoesWeb/fichadetramitacao'
-        '?idProposicao={}'
-    )
+    custom_settings = {'FEED_URI': feed('camara')}
+    urls = {
+        'list': 'https://dadosabertos.camara.leg.br/api/v2/proposicoes?siglaTipo={}&dataInicio={}',
+        'human': 'http://www.camara.gov.br/proposicoesWeb/fichadetramitacao?idProposicao={}'
+    }
 
     def start_requests(self):
         for subject in self.subjects:
-            url = self.base_url.format(subject, settings.START_DATE)
+            url = self.urls['list'].format(subject, settings.START_DATE)
             yield JsonRequest(url=url)
 
     def parse(self, response):
@@ -55,7 +51,7 @@ class CamaraSpider(Spider):
             'id_site': bill.get('id'),
             'apresentacao': bill.get('dataApresentacao')[:10],  # 10 chars date
             'ementa': bill.get('ementa'),
-            'url': self.human_url.format(bill.get('id')),
+            'url': self.urls['human'].format(bill.get('id')),
             'extra': {
                 'keywords': bill.get('keywords'),
                 'local_url': bill.get('statusProposicao', {}).get('uriOrgao'),
@@ -101,18 +97,5 @@ class CamaraSpider(Spider):
         else:
             yield Request(
                 url=pdf_url,
-                callback=partial(self.parse_bill_pdf, data)
+                callback=partial(self.parse_pdf, data)
             )
-
-    def parse_bill_pdf(self, data, response):
-        _, tmp = mkstemp(suffix='.pdf')
-        with open(tmp, 'wb') as fobj:
-            fobj.write(response.body)
-
-        text = extract_text(tmp)
-        for keyword in settings.KEYWORDS:
-            if keyword in text:
-                yield data
-                break
-
-        os.remove(tmp)

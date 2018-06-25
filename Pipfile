@@ -3,13 +3,16 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
-[packages]
-scrapy = "*"
-python-decouple = "*"
-PyPDF2 = "*"
-
-[dev-packages]
-ipython = "*"
-
 [requires]
 python_version = "3.6"
+
+[packages]
+PyPDF2 = "*"
+python-decouple = "*"
+python-memcached = "*"
+scrapy = "*"
+scrapy-memcached-cache = "*"
+
+[dev-packages]
+ipdb = "*"
+ipython = "*"
