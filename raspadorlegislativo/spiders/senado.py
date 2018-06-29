@@ -3,7 +3,7 @@ from functools import partial
 from scrapy import Request
 
 from raspadorlegislativo import settings
-from raspadorlegislativo.spiders import Spider
+from raspadorlegislativo.spiders import PendingRequest, Spider
 from raspadorlegislativo.utils.feed import feed
 
 
@@ -42,35 +42,47 @@ class SenadoSpider(Spider):
         number = response.xpath('//NumeroMateria/text()').extract_first()
         subject = response.xpath('//SiglaSubtipoMateria/text()').extract_first()
 
+        uuid = self.get_unique_id()
         data = {
+            'match': set(),  # later we include matching keywords in this list
             'nome': f'{subject} {number}',
             'id_site': response.xpath('//CodigoMateria/text()').extract_first(),
             'apresentacao': response.xpath('//DataApresentacao/text()').extract_first(),
             'ementa': description,
             'autoria': response.xpath('//NomeAutor/text()').extract_first(),
             'local': response.xpath('//NomeLocal/text()').extract_first(),
-            'url': self.urls['humans'].format(code)
+            'url': self.urls['humans'].format(code),
+            'pending_requests': [
+                PendingRequest(
+                    Request,
+                    self.urls['texts'].format(code),
+                    'parse_texts'
+                )
+            ]
         }
 
         summary = ' '.join((description, keywords))
         for keyword in settings.KEYWORDS:
             if keyword in summary.lower():
-                yield data
-                break  # we don't need to collect the same item twice
+                data['match'].add(keyword)
 
-        else:  # if there's no match, try to match in the PDF
-            yield Request(
-                url=self.urls['texts'].format(code),
-                callback=partial(self.parse_texts, data)
-            )
+        import logging
+        log = logging.getLogger(__name__)
+        log.debug(data)
+        self.set_bill(uuid, data)
+        yield from self.process_pending_requests(uuid)
 
-    def parse_texts(self, data, response):
+    def parse_texts(self, uuid, response):
+        data = self.get_bill(uuid)
+
         for text in response.xpath('//Text'):
-            file = text.xpath('//TipoDocumento/text()').extract()
-            type_ = text.xpath('//DescricaoTipoTexto/text()').extract()
-            if file.lower() == 'pdf' and type_.lower() == 'projeto de lei':
-                yield Request(
-                    url=text.xpath('//UrlTexto/text()').extract(),
-                    callback=partial(self.parse_pdf, data)
+            file_type = text.xpath('//TipoDocumento/text()').extract()
+            if file_type.lower() == 'pdf':
+                request = PendingRequest(
+                    Request,
+                    text.xpath('//UrlTexto/text()').extract(),
+                    self.parse_pdf
                 )
-                break  # we don't need to collect more than one PDF per item
+                data['pending_requests'].append(request)
+
+        self.set_bill(uuid, data)
