@@ -8,6 +8,7 @@ from scrapy import Spider as OriginalSpider
 from memcache import Client
 
 from raspadorlegislativo import settings
+from raspadorlegislativo.items import Bill
 from raspadorlegislativo.utils.pdf import extract_text
 
 
@@ -48,7 +49,7 @@ class Spider(OriginalSpider):
 
         if data['match']:
             data.pop('pending_requests')
-            yield data
+            yield Bill(data)
 
     def parse_pdf(self, uuid, response):
         _, tmp = mkstemp(suffix='.pdf')
