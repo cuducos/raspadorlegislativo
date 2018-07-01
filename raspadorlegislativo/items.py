@@ -1,17 +1,14 @@
-# -*- coding: utf-8 -*-
-
-# Define here the models for your scraped items
-#
-# See documentation in:
-# https://doc.scrapy.org/en/latest/topics/items.html
-
-import scrapy
+from scrapy import Field, Item
 
 
-class Bill(scrapy.Item):
-    nome = scrapy.Field()
-    id_site = scrapy.Field()
-    apresentacao = scrapy.Field()
-    ementa = scrapy.Field()
-    url = scrapy.Field()
-    match = scrapy.Field()
+class Bill(Item):
+    nome = Field()
+    id_site = Field()
+    apresentacao = Field()
+    ementa = Field()
+    autoria = Field()
+    local = Field()
+    origem = Field()
+
+    url = Field()
+    match = Field()

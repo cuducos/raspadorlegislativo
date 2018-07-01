@@ -52,6 +52,7 @@ class CamaraSpider(Spider):
             'id_site': bill.get('id'),
             'apresentacao': bill.get('dataApresentacao')[:10],  # 10 chars date
             'ementa': bill.get('ementa'),
+            'origem': 'CA',
             'url': self.urls['human'].format(bill.get('id')),
             'pending_requests': [
                 PendingRequest(

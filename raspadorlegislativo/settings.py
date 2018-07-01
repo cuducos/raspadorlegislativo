@@ -66,9 +66,9 @@ DOWNLOADER_MIDDLEWARES = {
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'raspadorlegislativo.pipelines.RaspadorlegislativoPipeline': 300,
-#}
+ITEM_PIPELINES = {
+    'raspadorlegislativo.pipelines.RaspadorlegislativoPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -89,8 +89,13 @@ HTTPCACHE_ENABLED = True
 HTTPCACHE_EXPIRATION_SECS = 3 * 60 * 60  # 3 hours
 HTTPCACHE_IGNORE_HTTP_CODES = []
 HTTPCACHE_STORAGE = 'scrapy_memcached_cache.MemcachedCacheStorage'
+MEMCACHED_LOCATION = config('MEMCACHED_LOCATION')
 
+# Settings for Scrapy to filter and save bills
 KEYWORDS = config('KEYWORDS', cast=Keyword())
 START_DATE = config('START_DATE')
 FEED_FORMAT = 'csv'
-MEMCACHED_LOCATION = config('MEMCACHED_LOCATION')
+
+# Settings to communicate with Radar Legislativo API
+RASPADOR_API_URL = config('RASPADOR_API_URL', default=None)
+RASPADOR_API_TOKEN = config('RASPADOR_API_TOKEN', default=None)

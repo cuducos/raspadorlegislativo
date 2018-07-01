@@ -1,5 +1,6 @@
 *.pyc
 .env
 .scrapy/
+.pytest_cache/
 __pycache__/
 data/*.csv

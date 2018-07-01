@@ -51,6 +51,7 @@ class SenadoSpider(Spider):
             'ementa': description,
             'autoria': response.xpath('//NomeAutor/text()').extract_first(),
             'local': response.xpath('//NomeLocal/text()').extract_first(),
+            'origem': 'SE',
             'url': self.urls['humans'].format(code),
             'pending_requests': [
                 PendingRequest(

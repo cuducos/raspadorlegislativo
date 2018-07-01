@@ -23,6 +23,12 @@ $ docker-compose up
 
 Verifique o resultado no diretótio `data/`.
 
+### Testes
+
+```sh
+docker-compose run --rm camara py.test
+```
+
 ## Instalação local (sem Docker)
 
 Requer [Python](https://python.org) 3.6 com [Pipenv](https://docs.pipenv.org/).
@@ -42,3 +48,9 @@ $ scrapy crawl senado
 ```
 
 Verifique o resultado no diretótio `data/`.
+
+### Testes
+
+```sh
+py.test
+```
