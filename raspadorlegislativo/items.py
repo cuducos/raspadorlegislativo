@@ -8,7 +8,10 @@
 import scrapy
 
 
-class RaspadorlegislativoItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class Bill(scrapy.Item):
+    nome = scrapy.Field()
+    id_site = scrapy.Field()
+    apresentacao = scrapy.Field()
+    ementa = scrapy.Field()
+    url = scrapy.Field()
+    match = scrapy.Field()

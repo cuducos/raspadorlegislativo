@@ -1,10 +1,9 @@
 import json
-from functools import partial
 
 from scrapy import Request
 
 from raspadorlegislativo import settings
-from raspadorlegislativo.spiders import Spider
+from raspadorlegislativo.spiders import PendingRequest, Spider
 from raspadorlegislativo.utils.feed import feed
 from raspadorlegislativo.utils.requests import JsonRequest
 
@@ -46,56 +45,58 @@ class CamaraSpider(Spider):
         PL e, na sequência, uma terceira para pegar os dados do local de
         tramitação."""
         bill = json.loads(response.body_as_unicode()).get('dados', {})
+        uuid = self.get_unique_id()
         data = {
+            'match': set(),  # later we include matching keywords in this list
             'nome': '{} {}'.format(bill.get('siglaTipo'), bill.get('numero')),
             'id_site': bill.get('id'),
             'apresentacao': bill.get('dataApresentacao')[:10],  # 10 chars date
             'ementa': bill.get('ementa'),
             'url': self.urls['human'].format(bill.get('id')),
-            'extra': {
-                'keywords': bill.get('keywords'),
-                'local_url': bill.get('statusProposicao', {}).get('uriOrgao'),
-                'pdf_url': bill.get('urlInteiroTeor')
-            }
+            'pending_requests': [
+                PendingRequest(
+                    JsonRequest,
+                    bill.get('uri'),
+                    'parse_bill_authorship'
+                ),
+                PendingRequest(
+                    JsonRequest,
+                    bill.get('statusProposicao', {}).get('uriOrgao'),
+                    'parse_bill_local'
+                ),
+                PendingRequest(
+                    Request,
+                    bill.get('urlInteiroTeor'),
+                    'parse_pdf'
+                )
+            ]
         }
 
-        yield JsonRequest(
-            url=bill.get('uriAutores'),
-            callback=partial(self.parse_bill_authorship, data)
-        )
+        summary = ' '.join((data['ementa'], bill.get('keywords')))
+        for keyword in settings.KEYWORDS:
+            if keyword in summary.lower():
+                data['match'].add(keyword)
 
-    def parse_bill_authorship(self, data, response):
+        self.set_bill(uuid, data)
+        yield from self.process_pending_requests(uuid)
+
+    def parse_bill_authorship(self, uuid, response):
         """Parser para processar a página que tem detalhes sobre a autoria de
         um dado PL. Esse método encerra chamando um outro método para obter os
         detalhes sobre o local de tramitação do PL."""
         authorship = json.loads(response.body_as_unicode()).get('dados')
+        data = self.get_bill(uuid)
         data['autoria'] = ', '.join(a.get('nome') for a in authorship)
+        self.set_bill(uuid, data)
 
-        yield JsonRequest(
-            url=data['extra']['local_url'],
-            callback=partial(self.parse_bill_local, data)
-        )
-
-    def parse_bill_local(self, data, response):
+    def parse_bill_local(self, uuid, response):
         """Parser para processar a página com detalhes do local de tramitação
         de um dado PL. Esse método pode ou iniciar uma nova requisição para
         buscar o PDF com o texto completo do PL, ou, caso alguma das palavras
         chaves seja encontrada nos metadados dos PL (ementa, por exemplo), já
         retorna um objeto (dicionário) com os dados do PL se necessitar de nova
         requisição."""
-        local = json.loads(response.body_as_unicode()).get('dados')
+        local = json.loads(response.body_as_unicode()).get('dados', {})
+        data = self.get_bill(uuid)
         data['local'] = local.get('nome')
-
-        pdf_url = data['extra']['pdf_url']
-        summary = ' '.join((data['ementa'], data['extra']['keywords']))
-        data.pop('extra')
-
-        for keyword in settings.KEYWORDS:
-            if keyword in summary.lower():
-                yield data
-                break
-        else:
-            yield Request(
-                url=pdf_url,
-                callback=partial(self.parse_pdf, data)
-            )
+        self.set_bill(uuid, data)
