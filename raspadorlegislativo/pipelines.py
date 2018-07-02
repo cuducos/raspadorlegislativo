@@ -1,11 +1,35 @@
-# -*- coding: utf-8 -*-
+import logging
 
-# Define your item pipelines here
-#
-# Don't forget to add your pipeline to the ITEM_PIPELINES setting
-# See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
+from requests import post
+
+from raspadorlegislativo import settings
 
 
-class RaspadorlegislativoPipeline(object):
+log = logging.getLogger(__name__)
+
+
+class RaspadorlegislativoPipeline:
+
+    skip = {'match', 'url'}
+
     def process_item(self, item, spider):
+        if all((settings.RASPADOR_API_TOKEN, settings.RASPADOR_API_URL)):
+            self.post(item)
+
         return item
+
+    def post(self, item):
+        data = self.serialize(item)
+        response = post(settings.RASPADOR_API_URL, data=data)
+        if response.status_code == 201:
+            log.info('Bill saved via API')
+
+        else:
+            log.info('Bill not saved via API')
+            log.info(response.status_code)
+            log.info(response.text)
+
+    def serialize(self, item):
+        data = {k: v for k, v in dict(item).items() if k not in self.skip}
+        data['token'] = settings.RASPADOR_API_TOKEN
+        return data
