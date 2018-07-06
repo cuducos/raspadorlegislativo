@@ -27,7 +27,9 @@ serialized = {
     'autoria': 'Fulana de Tal',
     'local': 'Câmara',
     'origem': 'CA',
-    'token': settings.RASPADOR_API_TOKEN
+    'token': settings.RASPADOR_API_TOKEN,
+    'url': 'https://foob.ar/',
+    'match': {'key', 'word'}
 }
 
 
