@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from scrapy import Spider as OriginalSpider
 from memcache import Client
+from requests import post
 
 from raspadorlegislativo import settings
 from raspadorlegislativo.items import Bill
@@ -19,6 +20,21 @@ class Spider(OriginalSpider):
 
     def __init__(self):
         self.cache = Client((settings.MEMCACHED_LOCATION,))
+
+    def origin(self):
+        """Returns the field `origem` from Radar as a string"""
+        mapping = dict(camara='CA', senado='SE')
+        return mapping.get(self.name)
+
+    def close(self, spider):
+        data = {
+            'token': settings.RASPADOR_API_TOKEN,
+            'start_time': spider.crawler.stats.get_value('start_time'),
+            'origem': spider.origin()
+        }
+        url = f'{settings.RASPADOR_API_URL}projeto/fim-da-raspagem/'
+        response = post(url, data=data)
+        spider.logger.info(response.json())
 
     def get_unique_id(self):
         return str(uuid4()).encode()
