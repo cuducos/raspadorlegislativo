@@ -9,6 +9,5 @@ class Bill(Item):
     autoria = Field()
     local = Field()
     origem = Field()
-
+    palavras_chave = Field()
     url = Field()
-    match = Field()

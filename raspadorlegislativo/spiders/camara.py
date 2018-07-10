@@ -47,7 +47,7 @@ class CamaraSpider(Spider):
         bill = json.loads(response.body_as_unicode()).get('dados', {})
         uuid = self.get_unique_id()
         data = {
-            'match': set(),  # later we include matching keywords in this list
+            'palavras_chave': set(),  # include matching keywords in this list
             'nome': '{} {}'.format(bill.get('siglaTipo'), bill.get('numero')),
             'id_site': bill.get('id'),
             'apresentacao': bill.get('dataApresentacao')[:10],  # 10 chars date
@@ -76,7 +76,7 @@ class CamaraSpider(Spider):
         summary = ' '.join((data['ementa'], bill.get('keywords')))
         for keyword in settings.KEYWORDS:
             if keyword in summary.lower():
-                data['match'].add(keyword)
+                data['palavras_chave'].add(keyword)
 
         self.set_bill(uuid, data)
         yield from self.process_pending_requests(uuid)
