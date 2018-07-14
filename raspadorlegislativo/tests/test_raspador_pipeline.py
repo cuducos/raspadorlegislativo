@@ -16,7 +16,7 @@ item = Bill(
     local='Câmara',
     origem='CA',
     url='https://foob.ar/',
-    palavras_chave={'key', 'word'}
+    palavras_chave=('key', 'word')
 )
 
 serialized = {
