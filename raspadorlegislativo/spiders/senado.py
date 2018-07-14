@@ -1,5 +1,3 @@
-from functools import partial
-
 from scrapy import Request
 
 from raspadorlegislativo import settings
@@ -33,16 +31,16 @@ class SenadoSpider(Spider):
         for code in codes:
             yield Request(
                 url=self.urls['detail'].format(code),
-                callback=partial(self.parse_subject, code)
+                meta={'code': code},
+                callback=self.parse_subject
             )
 
-    def parse_subject(self, code, response):
+    def parse_subject(self, response):
         description = response.xpath('//EmentaMateria/text()').extract_first() or ''
         keywords = response.xpath('//IndexacaoMateria/text()').extract_first() or ''
         number = response.xpath('//NumeroMateria/text()').extract_first()
         subject = response.xpath('//SiglaSubtipoMateria/text()').extract_first()
 
-        uuid = self.get_unique_id()
         data = {
             'palavras_chave': set(),  # include matching keywords in this list
             'nome': f'{subject} {number}',
@@ -52,38 +50,34 @@ class SenadoSpider(Spider):
             'autoria': response.xpath('//NomeAutor/text()').extract_first(),
             'local': response.xpath('//NomeLocal/text()').extract_first(),
             'origem': 'SE',
-            'url': self.urls['humans'].format(code),
-            'pending_requests': [
-                PendingRequest(
-                    Request,
-                    self.urls['texts'].format(code),
-                    'parse_texts'
-                )
-            ]
+            'url': self.urls['humans'].format(response.meta['code'])
         }
+
+        requests = [
+            PendingRequest(
+                Request,
+                self.urls['texts'].format(response.meta['code']),
+                self.parse_texts
+            )
+        ]
 
         summary = ' '.join((description, keywords))
         for keyword in settings.KEYWORDS:
             if keyword in summary.lower():
                 data['palavras_chave'].add(keyword)
 
-        import logging
-        log = logging.getLogger(__name__)
-        log.debug(data)
-        self.set_bill(uuid, data)
-        yield from self.process_pending_requests(uuid)
+        yield from self.process_pending_requests_or_yield_item(data, requests)
 
-    def parse_texts(self, uuid, response):
-        data = self.get_bill(uuid)
-
+    def parse_texts(self, response):
         for text in response.xpath('//Text'):
             file_type = text.xpath('//TipoDocumento/text()').extract()
             if file_type.lower() == 'pdf':
-                request = PendingRequest(
+                new_request = PendingRequest(
                     Request,
                     text.xpath('//UrlTexto/text()').extract(),
                     self.parse_pdf
                 )
-                data['pending_requests'].append(request)
+                response.meta['pending_requests'].append(new_request)
 
-        self.set_bill(uuid, data)
+        args = (response.meta['bill'], response.meta['pending_requests'])
+        yield from self.process_pending_requests_or_yield_item(*args)

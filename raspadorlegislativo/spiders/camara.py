@@ -45,7 +45,7 @@ class CamaraSpider(Spider):
         PL e, na sequência, uma terceira para pegar os dados do local de
         tramitação."""
         bill = json.loads(response.body_as_unicode()).get('dados', {})
-        uuid = self.get_unique_id()
+
         data = {
             'palavras_chave': set(),  # include matching keywords in this list
             'nome': '{} {}'.format(bill.get('siglaTipo'), bill.get('numero')),
@@ -53,44 +53,46 @@ class CamaraSpider(Spider):
             'apresentacao': bill.get('dataApresentacao')[:10],  # 10 chars date
             'ementa': bill.get('ementa'),
             'origem': 'CA',
-            'url': self.urls['human'].format(bill.get('id')),
-            'pending_requests': [
-                PendingRequest(
-                    JsonRequest,
-                    bill.get('uri'),
-                    'parse_bill_authorship'
-                ),
-                PendingRequest(
-                    JsonRequest,
-                    bill.get('statusProposicao', {}).get('uriOrgao'),
-                    'parse_bill_local'
-                ),
-                PendingRequest(
-                    Request,
-                    bill.get('urlInteiroTeor'),
-                    'parse_pdf'
-                )
-            ]
+            'url': self.urls['human'].format(bill.get('id'))
         }
+
+        requests = [
+            PendingRequest(
+                JsonRequest,
+                bill.get('uri'),
+                self.parse_bill_authorship
+            ),
+            PendingRequest(
+                JsonRequest,
+                bill.get('statusProposicao', {}).get('uriOrgao'),
+                self.parse_bill_local
+            ),
+            PendingRequest(
+                Request,
+                bill.get('urlInteiroTeor'),
+                self.parse_pdf
+            )
+        ]
 
         summary = ' '.join((data['ementa'], bill.get('keywords')))
         for keyword in settings.KEYWORDS:
             if keyword in summary.lower():
                 data['palavras_chave'].add(keyword)
 
-        self.set_bill(uuid, data)
-        yield from self.process_pending_requests(uuid)
+        yield from self.process_pending_requests_or_yield_item(bill, requests)
 
-    def parse_bill_authorship(self, uuid, response):
+    def parse_bill_authorship(self, response):
         """Parser para processar a página que tem detalhes sobre a autoria de
         um dado PL. Esse método encerra chamando um outro método para obter os
         detalhes sobre o local de tramitação do PL."""
-        authorship = json.loads(response.body_as_unicode()).get('dados')
-        data = self.get_bill(uuid)
-        data['autoria'] = ', '.join(a.get('nome') for a in authorship)
-        self.set_bill(uuid, data)
+        data = json.loads(response.body_as_unicode())
+        authorship = (author.get('nome') for author in data.get('dados'))
+        response.meta['bill']['autoria'] = ', '.join(authorship)
 
-    def parse_bill_local(self, uuid, response):
+        args = (response.meta['bill'], response.meta['pending_requests'])
+        yield from self.process_pending_requests_or_yield_item(*args)
+
+    def parse_bill_local(self, response):
         """Parser para processar a página com detalhes do local de tramitação
         de um dado PL. Esse método pode ou iniciar uma nova requisição para
         buscar o PDF com o texto completo do PL, ou, caso alguma das palavras
@@ -98,6 +100,7 @@ class CamaraSpider(Spider):
         retorna um objeto (dicionário) com os dados do PL se necessitar de nova
         requisição."""
         local = json.loads(response.body_as_unicode()).get('dados', {})
-        data = self.get_bill(uuid)
-        data['local'] = local.get('nome')
-        self.set_bill(uuid, data)
+        response.meta['bill']['local'] = local.get('nome')
+
+        args = (response.meta['bill'], response.meta['pending_requests'])
+        yield from self.process_pending_requests_or_yield_item(*args)
