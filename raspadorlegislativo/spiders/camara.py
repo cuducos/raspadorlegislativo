@@ -4,15 +4,24 @@ from scrapy import Request
 
 from raspadorlegislativo import settings
 from raspadorlegislativo.spiders import PendingRequest, Spider
-from raspadorlegislativo.utils.requests import JsonRequest
+from raspadorlegislativo.requests import JsonRequest
 
 
 class CamaraSpider(Spider):
+    """Raspa os dados da lista de todas as matérias que estão tramitando na
+    Câmara, filtradas por Projeto de Lei."""
+
     name = 'camara'
     subjects = ('PL',)
     urls = {
-        'list': 'https://dadosabertos.camara.leg.br/api/v2/proposicoes?siglaTipo={}&dataInicio={}',
-        'human': 'http://www.camara.gov.br/proposicoesWeb/fichadetramitacao?idProposicao={}'
+        'list': (
+            'https://dadosabertos.camara.leg.br/'
+            'api/v2/proposicoes?siglaTipo={}&dataInicio={}'
+        ),
+        'human': (
+            'http://www.camara.gov.br/'
+            'proposicoesWeb/fichadetramitacao?idProposicao={}'
+        )
     }
 
     def start_requests(self):

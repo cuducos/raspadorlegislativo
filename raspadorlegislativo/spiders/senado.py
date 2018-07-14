@@ -12,10 +12,16 @@ class SenadoSpider(Spider):
     allowed_domains = ('legis.senado.leg.br',)
     subjects = ('PLS',)
     urls = {
-        'list': 'http://legis.senado.leg.br/dadosabertos/materia/tramitando?sigla={}&data={}',
+        'list': (
+            'http://legis.senado.leg.br/'
+            'dadosabertos/materia/tramitando?sigla={}&data={}'
+        ),
         'detail':  'http://legis.senado.leg.br/dadosabertos/materia/{}',
         'texts': 'http://legis.senado.leg.br/dadosabertos/materia/textos/{}',
-        'humans': 'https://www25.senado.leg.br/web/atividade/materias/-/materia/{}'
+        'humans': (
+            'https://www25.senado.leg.br/'
+            'web/atividade/materias/-/materia/{}'
+        )
     }
 
     def start_requests(self):
@@ -30,10 +36,10 @@ class SenadoSpider(Spider):
             yield Request(
                 url=self.urls['detail'].format(code),
                 meta={'code': code},
-                callback=self.parse_subject
+                callback=self.parse_bill
             )
 
-    def parse_subject(self, response):
+    def parse_bill(self, response):
         description = response.xpath('//EmentaMateria/text()').extract_first() or ''
         keywords = response.xpath('//IndexacaoMateria/text()').extract_first() or ''
         number = response.xpath('//NumeroMateria/text()').extract_first()
@@ -68,11 +74,11 @@ class SenadoSpider(Spider):
 
     def parse_texts(self, response):
         for text in response.xpath('//Text'):
-            file_type = text.xpath('//TipoDocumento/text()').extract()
+            file_type = text.xpath('//TipoDocumento/text()').extract_first()
             if file_type.lower() == 'pdf':
                 new_request = PendingRequest(
                     Request,
-                    text.xpath('//UrlTexto/text()').extract(),
+                    text.xpath('//UrlTexto/text()').extract_first(),
                     self.parse_pdf
                 )
                 response.meta['pending_requests'].append(new_request)

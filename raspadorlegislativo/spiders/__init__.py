@@ -20,16 +20,11 @@ PendingRequest = namedtuple(
 
 class Spider(OriginalSpider):
 
-    def origin(self):
-        """Returns the field `origem` from Radar as a string"""
-        mapping = dict(camara='CA', senado='SE')
-        return mapping.get(self.name)
-
     def close(self, spider):
         data = {
             'token': settings.RASPADOR_API_TOKEN,
             'start_time': spider.crawler.stats.get_value('start_time'),
-            'origem': spider.origin()
+            'origem': 'CA' if self.name == 'camara' else 'SE'
         }
         url = f'{settings.RASPADOR_API_URL}projeto/fim-da-raspagem/'
         response = post(url, data=data)

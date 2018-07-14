@@ -1,7 +1,7 @@
 from pathlib import Path
 from decouple import config
 
-from raspadorlegislativo.utils.decouple import Keyword
+from raspadorlegislativo.decouple import Keyword
 
 # Scrapy settings for raspadorlegislativo project
 #
