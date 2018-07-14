@@ -47,7 +47,7 @@ class Spider(OriginalSpider):
 
             data = self.get_bill(uuid)
 
-        if data['match']:
+        if data['palavras_chave']:
             data.pop('pending_requests')
             yield Bill(data)
 
@@ -60,7 +60,7 @@ class Spider(OriginalSpider):
         data = self.get_bill(uuid)
         for keyword in settings.KEYWORDS:
             if keyword in text:
-                data['match'].add(keyword)
+                data['palavras_chave'].add(keyword)
 
         os.remove(tmp)
         self.set_bill(uuid, data)

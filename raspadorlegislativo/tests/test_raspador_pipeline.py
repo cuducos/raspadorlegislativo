@@ -16,7 +16,7 @@ item = Bill(
     local='Câmara',
     origem='CA',
     url='https://foob.ar/',
-    match={'key', 'word'}
+    palavras_chave=('key', 'word')
 )
 
 serialized = {
@@ -27,6 +27,8 @@ serialized = {
     'autoria': 'Fulana de Tal',
     'local': 'Câmara',
     'origem': 'CA',
+    'url': 'https://foob.ar/',
+    'palavras_chave': 'key, word',
     'token': settings.RASPADOR_API_TOKEN
 }
 

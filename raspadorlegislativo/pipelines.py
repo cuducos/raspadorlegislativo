@@ -10,8 +10,6 @@ log = logging.getLogger(__name__)
 
 class RaspadorlegislativoPipeline:
 
-    skip = {'match', 'url'}
-
     def process_item(self, item, spider):
         if all((settings.RASPADOR_API_TOKEN, settings.RASPADOR_API_URL)):
             self.post(item)
@@ -30,6 +28,7 @@ class RaspadorlegislativoPipeline:
             log.info(response.text)
 
     def serialize(self, item):
-        data = {k: v for k, v in dict(item).items() if k not in self.skip}
+        data = dict(item)
         data['token'] = settings.RASPADOR_API_TOKEN
+        data['palavras_chave'] = ', '.join(data['palavras_chave'])
         return data

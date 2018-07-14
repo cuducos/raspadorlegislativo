@@ -44,7 +44,7 @@ class SenadoSpider(Spider):
 
         uuid = self.get_unique_id()
         data = {
-            'match': set(),  # later we include matching keywords in this list
+            'palavras_chave': set(),  # include matching keywords in this list
             'nome': f'{subject} {number}',
             'id_site': response.xpath('//CodigoMateria/text()').extract_first(),
             'apresentacao': response.xpath('//DataApresentacao/text()').extract_first(),
@@ -65,7 +65,7 @@ class SenadoSpider(Spider):
         summary = ' '.join((description, keywords))
         for keyword in settings.KEYWORDS:
             if keyword in summary.lower():
-                data['match'].add(keyword)
+                data['palavras_chave'].add(keyword)
 
         import logging
         log = logging.getLogger(__name__)
