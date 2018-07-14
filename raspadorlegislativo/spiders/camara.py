@@ -4,14 +4,12 @@ from scrapy import Request
 
 from raspadorlegislativo import settings
 from raspadorlegislativo.spiders import PendingRequest, Spider
-from raspadorlegislativo.utils.feed import feed
 from raspadorlegislativo.utils.requests import JsonRequest
 
 
 class CamaraSpider(Spider):
     name = 'camara'
     subjects = ('PL',)
-    custom_settings = {'FEED_URI': feed('camara')}
     urls = {
         'list': 'https://dadosabertos.camara.leg.br/api/v2/proposicoes?siglaTipo={}&dataInicio={}',
         'human': 'http://www.camara.gov.br/proposicoesWeb/fichadetramitacao?idProposicao={}'

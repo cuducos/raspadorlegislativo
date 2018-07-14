@@ -1,3 +1,4 @@
+from pathlib import Path
 from decouple import config
 
 from raspadorlegislativo.utils.decouple import Keyword
@@ -95,6 +96,7 @@ MEMCACHED_LOCATION = config('MEMCACHED_LOCATION')
 KEYWORDS = config('KEYWORDS', cast=Keyword())
 START_DATE = config('START_DATE')
 FEED_FORMAT = 'csv'
+FEED_URI = str(Path() / 'data' / '%(name)s-%(time)s.csv')
 
 # Settings to communicate with Radar Legislativo API
 RASPADOR_API_URL = config('RASPADOR_API_URL', default=None)
