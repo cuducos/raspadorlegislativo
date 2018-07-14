@@ -1,5 +1,6 @@
 import os
 from collections import namedtuple
+from json import JSONDecodeError
 from tempfile import mkstemp
 
 from scrapy import Spider as OriginalSpider
@@ -31,7 +32,13 @@ class Spider(OriginalSpider):
         }
         url = f'{settings.RASPADOR_API_URL}projeto/fim-da-raspagem/'
         response = post(url, data=data)
-        spider.logger.info(response.json())
+
+        try:
+            content = response.json()
+        except JSONDecodeError:
+            content = response.text
+
+        spider.logger.info(content)
 
     def process_pending_requests_or_yield_item(self, bill, pending_requests):
         if pending_requests:
