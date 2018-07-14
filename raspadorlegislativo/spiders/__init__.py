@@ -1,14 +1,15 @@
 import os
 from collections import namedtuple
+from contextlib import contextmanager
 from json import JSONDecodeError
 from tempfile import mkstemp
 
-from scrapy import Spider as OriginalSpider
+from PyPDF2 import PdfFileReader
 from requests import post
+from scrapy import Spider as OriginalSpider
 
 from raspadorlegislativo import settings
 from raspadorlegislativo.items import Bill
-from raspadorlegislativo.utils.pdf import extract_text
 
 
 PendingRequest = namedtuple(
@@ -52,15 +53,27 @@ class Spider(OriginalSpider):
             yield Bill(bill)
 
     def parse_pdf(self, response):
-        _, tmp = mkstemp(suffix='.pdf')
-        with open(tmp, 'wb') as fobj:
-            fobj.write(response.body)
-        text = extract_text(tmp).lower()
-
-        for keyword in settings.KEYWORDS:
-            if keyword in text:
+        with self.text_from_pdf(response.body) as text:
+            text = text.lower()
+            for keyword in (k for k in settings.KEYWORDS if k in text):
                 response.meta['bill']['palavras_chave'].add(keyword)
 
-        os.remove(tmp)
         args = (response.meta['bill'], response.meta['pending_requests'])
         yield from self.process_pending_requests_or_yield_item(*args)
+
+    @contextmanager
+    def text_from_pdf(self, pdf_in_bytes):
+        _, tmp = mkstemp(suffix='.pdf')
+
+        with open(tmp, 'wb') as fobj:
+            fobj.write(pdf_in_bytes)
+
+        with open(tmp, 'rb') as fobj:
+            pdf = PdfFileReader(fobj)
+            contents = '\n'.join(
+                pdf.getPage(num).extractText()
+                for num in range(pdf.numPages)
+            )
+
+        yield contents
+        os.remove(tmp)
