@@ -44,7 +44,7 @@ class Spider(OriginalSpider):
                 meta={'bill': bill, 'pending_requests': pending_requests},
                 callback=next_request.callback
             )
-        else:
+        elif bill['palavras_chave']:
             yield Bill(bill)
 
     def parse_pdf(self, response):
