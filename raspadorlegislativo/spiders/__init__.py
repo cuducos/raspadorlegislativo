@@ -26,7 +26,7 @@ class Spider(OriginalSpider):
             'start_time': spider.crawler.stats.get_value('start_time'),
             'origem': 'CA' if self.name == 'camara' else 'SE'
         }
-        url = f'{settings.RASPADOR_API_URL}projeto/fim-da-raspagem/'
+        url = f'{settings.RASPADOR_API_URL}fim-da-raspagem/'
         response = post(url, data=data)
 
         try:
