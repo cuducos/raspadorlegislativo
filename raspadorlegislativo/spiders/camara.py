@@ -27,7 +27,7 @@ class CamaraSpider(Spider):
     def start_requests(self):
         for subject in self.subjects:
             url = self.urls['list'].format(subject, settings.START_DATE)
-            yield JsonRequest(url=url)
+            yield JsonRequest(url)
 
     def parse(self, response):
         """Parser para página que lista todos os PLs da Câmara"""
@@ -36,23 +36,15 @@ class CamaraSpider(Spider):
         links = contents.get('links', tuple())
 
         for bill in bills:
-            yield JsonRequest(
-                url=bill.get('uri'),
-                callback=self.parse_bill_general
-            )
+            yield JsonRequest(bill.get('uri'), self.parse_bill)
 
         for link in links:
             if link.get('rel') == 'next':
-                yield JsonRequest(url=link.get('href'))
+                yield JsonRequest(link.get('href'))
                 break
 
-    def parse_bill_general(self, response):
-        """1º passo do parser para página de detalhes de um PL da Câmara. Na
-        sequência nova requisição é feita para buscar dados da autoria do
-        PL e, na sequência, uma terceira para pegar os dados do local de
-        tramitação."""
+    def parse_bill(self, response):
         bill = json.loads(response.body_as_unicode()).get('dados', {})
-
         data = {
             'palavras_chave': set(),  # include matching keywords in this list
             'nome': '{} {}'.format(bill.get('siglaTipo'), bill.get('numero')),
@@ -62,17 +54,16 @@ class CamaraSpider(Spider):
             'origem': 'CA',
             'url': self.urls['human'].format(bill.get('id'))
         }
-
         requests = [
             PendingRequest(
                 JsonRequest,
                 bill.get('uri'),
-                self.parse_bill_authorship
+                self.parse_authorship
             ),
             PendingRequest(
                 JsonRequest,
                 bill.get('statusProposicao', {}).get('uriOrgao'),
-                self.parse_bill_local
+                self.parse_local
             ),
             PendingRequest(
                 Request,
@@ -91,10 +82,7 @@ class CamaraSpider(Spider):
 
         yield from self.process_pending_requests_or_yield_item(data, requests)
 
-    def parse_bill_authorship(self, response):
-        """Parser para processar a página que tem detalhes sobre a autoria de
-        um dado PL. Esse método encerra chamando um outro método para obter os
-        detalhes sobre o local de tramitação do PL."""
+    def parse_authorship(self, response):
         data = json.loads(response.body_as_unicode())
         authorship = (author.get('nome') for author in data.get('dados'))
         response.meta['bill']['autoria'] = ', '.join(authorship)
@@ -102,13 +90,7 @@ class CamaraSpider(Spider):
         args = (response.meta['bill'], response.meta['pending_requests'])
         yield from self.process_pending_requests_or_yield_item(*args)
 
-    def parse_bill_local(self, response):
-        """Parser para processar a página com detalhes do local de tramitação
-        de um dado PL. Esse método pode ou iniciar uma nova requisição para
-        buscar o PDF com o texto completo do PL, ou, caso alguma das palavras
-        chaves seja encontrada nos metadados dos PL (ementa, por exemplo), já
-        retorna um objeto (dicionário) com os dados do PL se necessitar de nova
-        requisição."""
+    def parse_local(self, response):
         local = json.loads(response.body_as_unicode()).get('dados', {})
         response.meta['bill']['local'] = local.get('nome')
 
