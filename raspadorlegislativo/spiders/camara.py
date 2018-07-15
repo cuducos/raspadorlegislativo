@@ -86,7 +86,7 @@ class CamaraSpider(Spider):
             if keyword in summary.lower():
                 data['palavras_chave'].add(keyword)
 
-        yield from self.process_pending_requests_or_yield_item(bill, requests)
+        yield from self.process_pending_requests_or_yield_item(data, requests)
 
     def parse_bill_authorship(self, response):
         """Parser para processar a página que tem detalhes sobre a autoria de
