@@ -40,8 +40,8 @@ class SenadoSpider(Spider):
             )
 
     def parse_bill(self, response):
-        description = response.xpath('//EmentaMateria/text()').extract_first() or ''
-        keywords = response.xpath('//IndexacaoMateria/text()').extract_first() or ''
+        description = response.xpath('//EmentaMateria/text()').extract_first()
+        keywords = response.xpath('//IndexacaoMateria/text()').extract_first()
         number = response.xpath('//NumeroMateria/text()').extract_first()
         subject = response.xpath('//SiglaSubtipoMateria/text()').extract_first()
 
@@ -65,9 +65,12 @@ class SenadoSpider(Spider):
             )
         ]
 
-        summary = ' '.join((description, keywords))
+        summary = ' '.join(
+            text.lower() for text in (description, keywords)
+            if text
+        )
         for keyword in settings.KEYWORDS:
-            if keyword in summary.lower():
+            if keyword in summary:
                 data['palavras_chave'].add(keyword)
 
         yield from self.process_pending_requests_or_yield_item(data, requests)

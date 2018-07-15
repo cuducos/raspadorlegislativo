@@ -81,9 +81,12 @@ class CamaraSpider(Spider):
             )
         ]
 
-        summary = ' '.join((data['ementa'], bill.get('keywords')))
+        summary = ' '.join(
+            text.lower() for text in (data['ementa'], bill.get('keywords'))
+            if text
+        )
         for keyword in settings.KEYWORDS:
-            if keyword in summary.lower():
+            if keyword in summary:
                 data['palavras_chave'].add(keyword)
 
         yield from self.process_pending_requests_or_yield_item(data, requests)
