@@ -92,6 +92,7 @@ class SenadoSpider(Spider):
         if not pending_texts:
             if response.meta['bill']['palavras_chave']:
                 return Bill(response.meta['bill'])
+            return
 
         url, *urls = pending_texts
         meta = {'bill': response.meta['bill'], 'urls': urls}
