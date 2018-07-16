@@ -40,4 +40,4 @@ def test_serialize(mocker):
 def test_process_item(mocker):
     post = mocker.patch('raspadorlegislativo.pipelines.post')
     pipeline.process_item(item, Mock())
-    post.assert_called_once_with(settings.RASPADOR_API_URL, data=serialized)
+    post.assert_called_once_with(f'{settings.RASPADOR_API_URL}projeto/', data=serialized)

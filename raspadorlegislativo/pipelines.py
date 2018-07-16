@@ -17,15 +17,15 @@ class RaspadorlegislativoPipeline:
         return item
 
     def post(self, item):
-        data = self.serialize(item)
-        response = post(settings.RASPADOR_API_URL, data=data)
-        if response.status_code == 201:
-            log.info('Bill saved via API')
-
-        else:
+        url = f'{settings.RASPADOR_API_URL}projeto/'
+        response = post(url, data=self.serialize(item))
+        if response.status_code != 201:
             log.info('Bill not saved via API')
             log.info(response.status_code)
             log.info(response.text)
+            return
+
+        log.info('Bill saved via API')
 
     def serialize(self, item):
         data = dict(item)
