@@ -3,8 +3,9 @@ import json
 from scrapy import Request
 
 from raspadorlegislativo import settings
-from raspadorlegislativo.spiders import PendingRequest, Spider
+from raspadorlegislativo.items import Bill
 from raspadorlegislativo.requests import JsonRequest
+from raspadorlegislativo.spiders import Spider
 
 
 class CamaraSpider(Spider):
@@ -30,7 +31,7 @@ class CamaraSpider(Spider):
             yield JsonRequest(url)
 
     def parse(self, response):
-        """Parser para página que lista todos os PLs da Câmara"""
+        """Parser p/ página que lista todos os PLs da Câmara"""
         contents = json.loads(response.body_as_unicode())
         bills = contents.get('dados', tuple())
         links = contents.get('links', tuple())
@@ -44,6 +45,7 @@ class CamaraSpider(Spider):
                 break
 
     def parse_bill(self, response):
+        """Parser p/ página do PL. Encadeia o parser da página de autoria."""
         bill = json.loads(response.body_as_unicode()).get('dados', {})
         data = {
             'palavras_chave': set(),  # include matching keywords in this list
@@ -54,23 +56,10 @@ class CamaraSpider(Spider):
             'origem': 'CA',
             'url': self.urls['human'].format(bill.get('id'))
         }
-        requests = [
-            PendingRequest(
-                JsonRequest,
-                bill.get('uri'),
-                self.parse_authorship
-            ),
-            PendingRequest(
-                JsonRequest,
-                bill.get('statusProposicao', {}).get('uriOrgao'),
-                self.parse_local
-            ),
-            PendingRequest(
-                Request,
-                bill.get('urlInteiroTeor'),
-                self.parse_pdf
-            )
-        ]
+        urls = {
+            'local': bill.get('statusProposicao', {}).get('uriOrgao'),
+            'pdf': bill.get('urlInteiroTeor')
+        }
 
         summary = ' '.join(
             text.lower() for text in (data['ementa'], bill.get('keywords'))
@@ -80,19 +69,34 @@ class CamaraSpider(Spider):
             if keyword in summary:
                 data['palavras_chave'].add(keyword)
 
-        yield from self.process_pending_requests_or_yield_item(data, requests)
+        meta = {'bill': data, 'urls': urls}
+        url = bill.get('uriAutores')
+        yield JsonRequest(url, self.parse_authorship, meta=meta)
 
     def parse_authorship(self, response):
+        """Parser p/ página de autoria. Encadeia parser p/ página de local."""
         data = json.loads(response.body_as_unicode())
         authorship = (author.get('nome') for author in data.get('dados'))
         response.meta['bill']['autoria'] = ', '.join(authorship)
 
-        args = (response.meta['bill'], response.meta['pending_requests'])
-        yield from self.process_pending_requests_or_yield_item(*args)
+        url = response.meta['urls'].pop('local')
+        meta = {'bill': response.meta['bill'], 'urls': response.meta['urls']}
+        yield JsonRequest(url, self.parse_local, meta=meta)
 
     def parse_local(self, response):
+        """Parser p/ página de local. Encadeia parser p/ inteiro teor."""
         local = json.loads(response.body_as_unicode()).get('dados', {})
         response.meta['bill']['local'] = local.get('nome')
 
-        args = (response.meta['bill'], response.meta['pending_requests'])
-        yield from self.process_pending_requests_or_yield_item(*args)
+        url = response.meta['urls'].pop('pdf')
+        meta = {'bill': response.meta['bill']}
+        yield Request(url, self.parse_pdf, meta=meta)
+
+    def parse_pdf(self, response):
+        """Parser p/ PDF inteiro teor."""
+        with self.text_from_pdf(response.body) as text:
+            text = text.lower()
+            for keyword in (k for k in settings.KEYWORDS if k in text):
+                response.meta['bill']['palavras_chave'].add(keyword)
+
+        yield Bill(response.meta['bill'])

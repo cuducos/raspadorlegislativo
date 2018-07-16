@@ -1,5 +1,4 @@
 import os
-from collections import namedtuple
 from contextlib import contextmanager
 from json import JSONDecodeError
 from tempfile import mkstemp
@@ -9,13 +8,6 @@ from requests import post
 from scrapy import Spider as OriginalSpider
 
 from raspadorlegislativo import settings
-from raspadorlegislativo.items import Bill
-
-
-PendingRequest = namedtuple(
-    'PendingRequest',
-    ('request_class', 'url', 'callback')
-)
 
 
 class Spider(OriginalSpider):
@@ -35,26 +27,6 @@ class Spider(OriginalSpider):
             content = response.text
 
         spider.logger.info(content)
-
-    def process_pending_requests_or_yield_item(self, bill, pending_requests):
-        if pending_requests:
-            next_request, *pending_requests = pending_requests
-            yield next_request.request_class(
-                url=next_request.url,
-                meta={'bill': bill, 'pending_requests': pending_requests},
-                callback=next_request.callback
-            )
-        elif bill['palavras_chave']:
-            yield Bill(bill)
-
-    def parse_pdf(self, response):
-        with self.text_from_pdf(response.body) as text:
-            text = text.lower()
-            for keyword in (k for k in settings.KEYWORDS if k in text):
-                response.meta['bill']['palavras_chave'].add(keyword)
-
-        args = (response.meta['bill'], response.meta['pending_requests'])
-        yield from self.process_pending_requests_or_yield_item(*args)
 
     @contextmanager
     def text_from_pdf(self, pdf_in_bytes):

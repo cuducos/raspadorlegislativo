@@ -1,7 +1,8 @@
 from scrapy import Request
 
 from raspadorlegislativo import settings
-from raspadorlegislativo.spiders import PendingRequest, Spider
+from raspadorlegislativo.items import Bill
+from raspadorlegislativo.spiders import Spider
 
 
 class SenadoSpider(Spider):
@@ -31,6 +32,7 @@ class SenadoSpider(Spider):
             yield Request(url=url)
 
     def parse(self, response):
+        """Parser para página que lista todos os PLS."""
         codes = response.xpath('//CodigoMateria/text()').extract()
         for code in codes:
             yield Request(
@@ -40,6 +42,7 @@ class SenadoSpider(Spider):
             )
 
     def parse_bill(self, response):
+        """Parser p/ página de detalhes do PLS. Encadeia parser dos textos."""
         description = response.xpath('//EmentaMateria/text()').extract_first()
         keywords = response.xpath('//IndexacaoMateria/text()').extract_first()
         number = response.xpath('//NumeroMateria/text()').extract_first()
@@ -57,14 +60,6 @@ class SenadoSpider(Spider):
             'url': self.urls['humans'].format(response.meta['code'])
         }
 
-        requests = [
-            PendingRequest(
-                Request,
-                self.urls['texts'].format(response.meta['code']),
-                self.parse_texts
-            )
-        ]
-
         summary = ' '.join(
             text.lower() for text in (description, keywords)
             if text
@@ -73,18 +68,30 @@ class SenadoSpider(Spider):
             if keyword in summary:
                 data['palavras_chave'].add(keyword)
 
-        yield from self.process_pending_requests_or_yield_item(data, requests)
+        url = self.urls['texts'].format(response.meta['code'])
+        yield Request(url, self.parse_texts, meta={'bill': data})
 
     def parse_texts(self, response):
-        for text in response.xpath('//Text'):
-            file_type = text.xpath('//TipoDocumento/text()').extract_first()
-            if file_type.lower() == 'pdf':
-                new_request = PendingRequest(
-                    Request,
-                    text.xpath('//UrlTexto/text()').extract_first(),
-                    self.parse_pdf
-                )
-                response.meta['pending_requests'].append(new_request)
+        pending_texts = tuple(
+            text.xpath('//UrlTexto/text()').extract_first()
+            for text in response.xpath('//Text')
+            if text.xpath('//TipoDocumento/text()').extract_first().lower == 'pdf'
+        )
+        yield self.next_text_or_item(response, pending_texts)
 
-        args = (response.meta['bill'], response.meta['pending_requests'])
-        yield from self.process_pending_requests_or_yield_item(*args)
+    def parse_pdf(self, response):
+        with self.text_from_pdf(response.body) as text:
+            text = text.lower()
+            for keyword in (k for k in settings.KEYWORDS if k in text):
+                response.meta['bill']['palavras_chave'].add(keyword)
+
+        pending_texts = response.meta.get('urls')
+        yield self.next_text_or_item(response, pending_texts)
+
+    def next_text_or_item(self, response, pending_texts):
+        if not pending_texts:
+            return Bill(response.meta['bill'])
+
+        url, *urls = pending_texts
+        meta = {'bill': response.meta['bill'], 'urls': urls}
+        return Request(url, self.parse_pdf, meta=meta)
