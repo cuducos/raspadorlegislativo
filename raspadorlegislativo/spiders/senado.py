@@ -90,7 +90,8 @@ class SenadoSpider(Spider):
 
     def next_text_or_item(self, response, pending_texts):
         if not pending_texts:
-            return Bill(response.meta['bill'])
+            if response.meta['bill']['palavras_chave']:
+                return Bill(response.meta['bill'])
 
         url, *urls = pending_texts
         meta = {'bill': response.meta['bill'], 'urls': urls}

@@ -99,4 +99,5 @@ class CamaraSpider(Spider):
             for keyword in (k for k in settings.KEYWORDS if k in text):
                 response.meta['bill']['palavras_chave'].add(keyword)
 
-        yield Bill(response.meta['bill'])
+        if response.meta['bill']['palavras_chave']:
+            yield Bill(response.meta['bill'])
