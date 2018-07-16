@@ -13,6 +13,9 @@ from raspadorlegislativo import settings
 class Spider(OriginalSpider):
 
     def close(self, spider):
+        if not all((settings.RASPADOR_API_TOKEN, settings.RASPADOR_API_URL)):
+            return
+
         data = {
             'token': settings.RASPADOR_API_TOKEN,
             'start_time': spider.crawler.stats.get_value('start_time'),

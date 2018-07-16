@@ -11,21 +11,20 @@ log = logging.getLogger(__name__)
 class RaspadorlegislativoPipeline:
 
     def process_item(self, item, spider):
-        if all((settings.RASPADOR_API_TOKEN, settings.RASPADOR_API_URL)):
-            self.post(item)
+        if not all((settings.RASPADOR_API_TOKEN, settings.RASPADOR_API_URL)):
+            return item
 
-        return item
-
-    def post(self, item):
         url = f'{settings.RASPADOR_API_URL}projeto/'
         response = post(url, data=self.serialize(item))
+
         if response.status_code != 201:
             log.info('Bill not saved via API')
             log.info(response.status_code)
             log.info(response.text)
-            return
+            return item
 
         log.info('Bill saved via API')
+        return item
 
     def serialize(self, item):
         data = dict(item)
