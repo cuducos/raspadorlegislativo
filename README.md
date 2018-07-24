@@ -4,10 +4,11 @@ Repositório de testes de código para integrar, futuramente, o [Radar Legislati
 
 ## Configurações
 
-Copie o arquivo de configuração e edite-o de acordo com o desejado:
+Copie os arquivos de configuração e edite-os de acordo com o desejado:
 
 ```sh
 $ cp .env.sample .env
+$ cp secrets/keywords.json.sample secrets/keywords.json
 ```
 
 ## Instalação em container (com Docker)

@@ -1,11 +1,12 @@
-from decouple import Csv
+import os
+from json import load
 
 
-class Keyword(Csv):
+def keyword_parser(path):
+    if not path or not os.path.exists(path):
+        return set()
 
-    def __init__(self, *args, **kwargs):
-        kwargs['post_process'] = set
-        super(Keyword, self).__init__(*args, **kwargs)
+    with open(path) as fobj:
+        data = load(fobj)
 
-    def __call__(self, value):
-        return super(Keyword, self).__call__(value.lower())
+    return set(keyword for keywords in data.values() for keyword in keywords)

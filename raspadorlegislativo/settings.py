@@ -1,6 +1,6 @@
 from decouple import config
 
-from raspadorlegislativo.utils.decouple import Keyword
+from raspadorlegislativo.utils.decouple import keyword_parser
 
 # Scrapy settings for raspadorlegislativo project
 #
@@ -92,7 +92,7 @@ HTTPCACHE_STORAGE = 'scrapy_memcached_cache.MemcachedCacheStorage'
 MEMCACHED_LOCATION = config('MEMCACHED_LOCATION')
 
 # Settings for Scrapy to filter and save bills
-KEYWORDS = config('KEYWORDS', cast=Keyword())
+KEYWORDS = config('KEYWORDS', cast=keyword_parser)
 START_DATE = config('START_DATE')
 FEED_FORMAT = 'csv'
 
