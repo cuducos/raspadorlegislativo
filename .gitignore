@@ -1,6 +1,8 @@
 *.pyc
 .env
-.scrapy/
 .pytest_cache/
+.scrapy/
 __pycache__/
 data/*.csv
+secrets/*.*
+!secrets/*.sample
