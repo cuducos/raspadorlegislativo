@@ -7,12 +7,14 @@ name = "pypi"
 python_version = "3.6"
 
 [packages]
+markdownify = "*"
 PyPDF2 = "*"
 python-decouple = "*"
 python-memcached = "*"
 requests = "*"
 scrapy = "*"
 scrapy-memcached-cache = "*"
+pytz = "*"
 
 [dev-packages]
 ipdb = "*"

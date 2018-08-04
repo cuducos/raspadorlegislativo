@@ -11,3 +11,10 @@ class Bill(Item):
     origem = Field()
     palavras_chave = Field()
     url = Field()
+
+
+class Event(Item):
+    id_site = Field()
+    data = Field()
+    local = Field()
+    descricao = Field()
