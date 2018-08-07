@@ -28,6 +28,7 @@ class RaspadorlegislativoPipeline:
 
     def serialize(self, item):
         data = dict(item)
+        data.pop('inteiro_teor')
         data['token'] = RASPADOR_API_TOKEN
         data['palavras_chave'] = ', '.join(data['palavras_chave'])
         return data

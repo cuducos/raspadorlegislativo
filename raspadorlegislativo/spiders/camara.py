@@ -54,7 +54,8 @@ class CamaraSpider(Spider):
             'apresentacao': bill.get('dataApresentacao')[:10],  # 10 chars date
             'ementa': bill.get('ementa'),
             'origem': 'CA',
-            'url': self.urls['human'].format(bill.get('id'))
+            'url': self.urls['human'].format(bill.get('id')),
+            'inteiro_teor': []
         }
         urls = {
             'local': bill.get('statusProposicao', {}).get('uriOrgao'),
@@ -102,6 +103,7 @@ class CamaraSpider(Spider):
         """Parser p/ PDF inteiro teor."""
         if response:
             with self.text_from_pdf(response.body) as text:
+                response.meta['bill']['inteiro_teor'] = [text]
                 text = text.lower()
 
                 for keyword in (k for k in settings.KEYWORDS if k in text):
