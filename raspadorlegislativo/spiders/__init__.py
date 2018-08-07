@@ -9,18 +9,22 @@ from scrapy import Spider as OriginalSpider
 class Spider(OriginalSpider):
 
     @contextmanager
-    def text_from_pdf(self, pdf_in_bytes):
+    def text_from_pdf(self, response):
         _, tmp = mkstemp(suffix='.pdf')
 
         with open(tmp, 'wb') as fobj:
-            fobj.write(pdf_in_bytes)
+            fobj.write(response.body)
 
-        with open(tmp, 'rb') as fobj:
-            pdf = PdfFileReader(fobj)
-            contents = '\n'.join(
-                pdf.getPage(num).extractText()
-                for num in range(pdf.numPages)
-            )
+        try:
+            with open(tmp, 'rb') as fobj:
+                pdf = PdfFileReader(fobj)
+                contents = '\n'.join(
+                    pdf.getPage(num).extractText()
+                    for num in range(pdf.numPages)
+                )
+                yield contents
+        except:
+            self.logger.info(f'Could not read the PDF for {response.url}')
+            yield ''
 
-        yield contents
         os.remove(tmp)

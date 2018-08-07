@@ -81,7 +81,7 @@ class SenadoSpider(Spider):
         yield self.next_pdf_or_item(response, pending_texts)
 
     def parse_pdf(self, response):
-        with self.text_from_pdf(response.body) as text:
+        with self.text_from_pdf(response) as text:
             response.meta['bill']['inteiro_teor'] = \
                 response.meta['bill']['inteiro_teor'].append(text)
             text = text.lower()

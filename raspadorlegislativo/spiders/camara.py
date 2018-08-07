@@ -101,13 +101,12 @@ class CamaraSpider(Spider):
 
     def parse_pdf(self, response):
         """Parser p/ PDF inteiro teor."""
-        if response:
-            with self.text_from_pdf(response.body) as text:
-                response.meta['bill']['inteiro_teor'] = [text]
-                text = text.lower()
+        with self.text_from_pdf(response) as text:
+            response.meta['bill']['inteiro_teor'] = [text]
+            text = text.lower()
 
-                for keyword in (k for k in settings.KEYWORDS if k in text):
-                    response.meta['bill']['palavras_chave'].add(keyword)
+            for keyword in (k for k in settings.KEYWORDS if k in text):
+                response.meta['bill']['palavras_chave'].add(keyword)
 
         if not settings.KEYWORDS:
             response.meta['bill']['palavras_chave'] = response.meta['keywords']

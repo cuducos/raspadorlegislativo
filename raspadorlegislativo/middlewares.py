@@ -79,15 +79,6 @@ class RaspadorlegislativoDownloaderMiddleware(object):
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
-
-        patterns = (
-            r'^https?://Imagem\.camara\.gov\.br/Imagem/d/pdf/[A-Z0-9]+\.pdf#page=\d+',
-            r'^https?://imagem\.camara\.gov\.br/MostraIntegraImagem\.asp.*$'
-        )
-        for pattern in patterns:
-            if re.match(pattern, request.url):
-                raise IgnoreRequest('Ignoring request to an unreadable PDF')
-
         return None
 
     def process_response(self, request, response, spider):
