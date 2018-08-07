@@ -10,7 +10,6 @@ class SenadoSpider(Spider):
     Senado, filtradas por Projeto de Lei no Senado."""
 
     name = 'senado'
-    allowed_domains = ('legis.senado.leg.br',)
     subjects = ('PLS',)
     urls = {
         'list': (
