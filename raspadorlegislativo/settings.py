@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from decouple import config
 
 from raspadorlegislativo.decouple import keyword_parser

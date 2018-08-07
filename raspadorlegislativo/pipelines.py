@@ -1,5 +1,6 @@
 from scrapy import FormRequest
 
+from raspadorlegislativo.items import Bill, Event
 from raspadorlegislativo.settings import KEYWORDS, RASPADOR_API_TOKEN, RASPADOR_API_URL
 
 
@@ -16,7 +17,7 @@ class RaspadorlegislativoPipeline:
     def process_item(self, item, spider):
         if self.should_post and item['palavras_chave']:
             request = FormRequest(
-                f'{RASPADOR_API_URL}projeto/',
+                self.endpoint(item),
                 formdata=self.serialize(item),
                 callback=lambda resp: None
             )
@@ -26,7 +27,22 @@ class RaspadorlegislativoPipeline:
 
     def serialize(self, item):
         data = dict(item)
-        data.pop('inteiro_teor')
         data['token'] = RASPADOR_API_TOKEN
-        data['palavras_chave'] = ', '.join(data['palavras_chave'])
+        data.pop('inteiro_teor')
+
+        if 'palavras_chave' in data:
+            data['palavras_chave'] = ', '.join(data['palavras_chave'])
+
         return data
+
+    def endpoint(self, item):
+        endpoint = None
+        if isinstance(item, Bill):
+            endpoint = 'projeto/'
+        elif isinstance(item, Event):
+            endpoint = 'tramitacao/'
+
+        if not endpoint:
+            raise ValueError(f'No endpoint set for {item._class}')
+
+        return f'{RASPADOR_API_URL}{endpoint}'

@@ -12,3 +12,10 @@ class Bill(Item):
     palavras_chave = Field()
     url = Field()
     inteiro_teor = Field()
+
+
+class Event(Item):
+    id_site = Field()
+    data = Field()
+    local = Field()
+    descricao = Field()
