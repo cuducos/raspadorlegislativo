@@ -20,6 +20,7 @@ services:
       - .env
     volumes:
       - ./:/code
+      - ./secrets:/mnt/secrets
     depends_on:
       - memcached
     command: ["scrapy", "crawl", "senado"]
