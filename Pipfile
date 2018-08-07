@@ -10,7 +10,6 @@ python_version = "3.6"
 PyPDF2 = "*"
 python-decouple = "*"
 python-memcached = "*"
-requests = "*"
 scrapy = "*"
 scrapy-memcached-cache = "*"
 
