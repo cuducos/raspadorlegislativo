@@ -1,9 +1,9 @@
 # Raspador Legislativo
 
-Repositório de testes de código para integrar, futuramente, o [Radar Legislativo](https://gitlab.com/codingrights/radarlegislativo). O objetivo é automatizar a inclusão de projetos de lei no _Radar_ de acordo com palavras chaves.
-
-O repositório serve também para coletar dados de todos os projetos de lei em
-tramitação independente de palavra chave.
+Repositório de testes de código para integrar, futuramente, o
+[Radar Legislativo](https://gitlab.com/codingrights/radarlegislativo). O
+objetivo é automatizar a inclusão de projetos de lei e aganda de tramitação no
+_Radar_ de acordo com palavras chaves.
 
 ## Configurações
 
@@ -14,26 +14,45 @@ $ cp .env.sample .env
 $ cp secrets/keywords.json.sample secrets/keywords.json
 ```
 
-> Não configurar a variável `KEYWORDS` faz com que o Raspador colete dados sobre
-**todos** os projetos de lei em tramitação.
+### Coletando todos os projetos de lei
+
+Não configurar a variável `KEYWORDS` faz com que o _Raspador_ colete dados
+sobre **todos** os projetos de lei em tramitação desde `START_DATE`, mas
+nesse caso o _Raspador_ **não** envia os resultados para a API do
+_Radar Legislativo_.
+
+### Enviando os dados para o _Radar Legislativo_
+
+Configurando as variáveis `RASPADOR_API_URL` e `RASPADOR_API_TOKEN` de acordo
+com sua instância do _Radar Legislativo_ faz com que os projetos de lei
+encontrados sejam enviados para o _Radar_ **desde que** houver ao menos uma
+palavra-chave configurada no arquivo configurado na variávem de ambiente
+`KEYWORDS`.
 
 ## Instalação em container (com Docker)
 
 Requer [Docker](https://docs.docker.com/install/) e
 [Docker Compose](https://docs.docker.com/compose/install/).
 
-Colete os projetos de lei da Câmara e do Senado e salve os dados em um CSV com:
+Para rodar todos os raspadores:
 
 ```sh
-$ docker-compose up
+$ docker-compose run --rm scrapy python run.py
 ```
 
-Verifique o resultado no diretótio `data/`.
+Ou, para rodar um em específico:
+
+```sh
+$ docker-compose run --rm scrapy scrapy crawl <nome do raspador>
+```
+
+Verifique o resultado no diretótio `data/` (ou, se for o caso, na sua instância
+do _Radar Legislativo_).
 
 ### Testes
 
 ```sh
-docker-compose run --rm camara py.test
+docker-compose run --rm scrapy py.test
 ```
 
 ## Instalação local (sem Docker)
@@ -47,14 +66,20 @@ $ pipenv install
 $ pipenv shell
 ```
 
-Colete os projetos de lei da Câmara e do Senado e salve os dados em um CSV com:
+Para rodar todos os raspadores:
 
 ```sh
-$ scrapy crawl camara
-$ scrapy crawl senado
+$ python run.py
 ```
 
-Verifique o resultado no diretótio `data/`.
+Ou, para rodar um em específico:
+
+```sh
+$ scrapy crawl <nome do raspador>
+```
+
+Verifique o resultado no diretótio `data/` (ou, se for o caso, na sua instância
+do _Radar Legislativo_).
 
 ### Testes
 

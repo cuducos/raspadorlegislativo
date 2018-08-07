@@ -1,7 +1,7 @@
 version: "3"
 services:
 
-  camara:
+  scrapy:
     build:
       context: .
     env_file:
@@ -11,19 +11,7 @@ services:
       - ./secrets:/mnt/secrets
     depends_on:
       - memcached
-    command: ["scrapy", "crawl", "camara"]
-
-  senado:
-    build:
-      context: .
-    env_file:
-      - .env
-    volumes:
-      - ./:/code
-      - ./secrets:/mnt/secrets
-    depends_on:
-      - memcached
-    command: ["scrapy", "crawl", "senado"]
+    command: ["python", "run.py"]
 
   memcached:
     image: memcached:1.5.8-alpine

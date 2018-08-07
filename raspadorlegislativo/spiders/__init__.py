@@ -3,10 +3,10 @@ from contextlib import contextmanager
 from tempfile import mkstemp
 
 from PyPDF2 import PdfFileReader
-from scrapy import Spider as OriginalSpider
+from scrapy import Spider
 
 
-class Spider(OriginalSpider):
+class BillSpider(Spider):
 
     @contextmanager
     def text_from_pdf(self, response):
