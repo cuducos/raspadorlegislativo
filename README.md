@@ -2,6 +2,9 @@
 
 Repositório de testes de código para integrar, futuramente, o [Radar Legislativo](https://gitlab.com/codingrights/radarlegislativo). O objetivo é automatizar a inclusão de projetos de lei no _Radar_ de acordo com palavras chaves.
 
+O repositório serve também para coletar dados de todos os projetos de lei em
+tramitação independente de palavra chave.
+
 ## Configurações
 
 Copie os arquivos de configuração e edite-os de acordo com o desejado:
@@ -10,6 +13,9 @@ Copie os arquivos de configuração e edite-os de acordo com o desejado:
 $ cp .env.sample .env
 $ cp secrets/keywords.json.sample secrets/keywords.json
 ```
+
+> Não configurar a variável `KEYWORDS` faz com que o Raspador colete dados sobre
+**todos** os projetos de lei em tramitação.
 
 ## Instalação em container (com Docker)
 

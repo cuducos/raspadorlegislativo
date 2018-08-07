@@ -69,7 +69,8 @@ class SenadoSpider(Spider):
                 data['palavras_chave'].add(keyword)
 
         url = self.urls['texts'].format(response.meta['code'])
-        yield Request(url, self.parse_texts, meta={'bill': data})
+        meta = {'bill': data, 'keywords': keywords}
+        yield Request(url, self.parse_texts, meta=meta)
 
     def parse_texts(self, response):
         pending_texts = tuple(
@@ -77,7 +78,7 @@ class SenadoSpider(Spider):
             for text in response.xpath('//Text')
             if text.xpath('//TipoDocumento/text()').extract_first().lower == 'pdf'
         )
-        yield self.next_text_or_item(response, pending_texts)
+        yield self.next_pdf_or_item(response, pending_texts)
 
     def parse_pdf(self, response):
         with self.text_from_pdf(response.body) as text:
@@ -86,14 +87,24 @@ class SenadoSpider(Spider):
                 response.meta['bill']['palavras_chave'].add(keyword)
 
         pending_texts = response.meta.get('urls')
-        yield self.next_text_or_item(response, pending_texts)
+        yield self.next_pdf_or_item(response, pending_texts)
 
-    def next_text_or_item(self, response, pending_texts):
+    def next_pdf_or_item(self, response, pending_texts):
+        item = response.meta['bill']
+
         if not pending_texts:
-            if response.meta['bill']['palavras_chave']:
-                return Bill(response.meta['bill'])
-            return
+            if not settings.KEYWORDS and not item['palavras_chave']:
+                item['palavras_chave'] = response.meta['keywords']
+
+            if not settings.KEYWORDS or item['palavras_chave']:
+                return Bill(item)
+
+            return None
 
         url, *urls = pending_texts
-        meta = {'bill': response.meta['bill'], 'urls': urls}
+        meta = {
+            'bill': item,
+            'urls': urls,
+            'keywords': response.meta['keywords']
+        }
         return Request(url, self.parse_pdf, meta=meta)

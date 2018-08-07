@@ -93,7 +93,7 @@ HTTPCACHE_STORAGE = 'scrapy_memcached_cache.MemcachedCacheStorage'
 MEMCACHED_LOCATION = config('MEMCACHED_LOCATION')
 
 # Settings for Scrapy to filter and save bills
-KEYWORDS = config('KEYWORDS', cast=keyword_parser)
+KEYWORDS = config('KEYWORDS', default='{}', cast=keyword_parser)
 START_DATE = config('START_DATE')
 FEED_FORMAT = 'csv'
 FEED_URI = str(Path() / 'data' / '%(name)s-%(time)s.csv')

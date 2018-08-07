@@ -69,7 +69,7 @@ class CamaraSpider(Spider):
             if keyword in summary:
                 data['palavras_chave'].add(keyword)
 
-        meta = {'bill': data, 'urls': urls}
+        meta = {'bill': data, 'urls': urls, 'keywords': bill['keywords']}
         url = bill.get('uriAutores')
         yield JsonRequest(url, self.parse_authorship, meta=meta)
 
@@ -80,7 +80,10 @@ class CamaraSpider(Spider):
         response.meta['bill']['autoria'] = ', '.join(authorship)
 
         url = response.meta['urls'].pop('local')
-        meta = {'bill': response.meta['bill'], 'urls': response.meta['urls']}
+        meta = {
+            k: v for k, v in response.meta.items()
+            if k in {'bill', 'urls', 'keywords'}
+        }
         yield JsonRequest(url, self.parse_local, meta=meta)
 
     def parse_local(self, response):
@@ -89,15 +92,23 @@ class CamaraSpider(Spider):
         response.meta['bill']['local'] = local.get('nome')
 
         url = response.meta['urls'].pop('pdf')
-        meta = {'bill': response.meta['bill']}
+        meta = {
+            k: v for k, v in response.meta.items()
+            if k in {'bill', 'keywords'}
+        }
         yield Request(url, self.parse_pdf, meta=meta)
 
     def parse_pdf(self, response):
         """Parser p/ PDF inteiro teor."""
-        with self.text_from_pdf(response.body) as text:
-            text = text.lower()
-            for keyword in (k for k in settings.KEYWORDS if k in text):
-                response.meta['bill']['palavras_chave'].add(keyword)
+        if response:
+            with self.text_from_pdf(response.body) as text:
+                text = text.lower()
 
-        if response.meta['bill']['palavras_chave']:
+                for keyword in (k for k in settings.KEYWORDS if k in text):
+                    response.meta['bill']['palavras_chave'].add(keyword)
+
+        if not settings.KEYWORDS:
+            response.meta['bill']['palavras_chave'] = response.meta['keywords']
+
+        if not settings.KEYWORDS or response.meta['bill']['palavras_chave']:
             yield Bill(response.meta['bill'])
