@@ -21,7 +21,7 @@ class CamaraSpider(BillSpider):
     urls = {
         'list': (
             'https://dadosabertos.camara.leg.br/'
-            'api/v2/proposicoes?siglaTipo={}&dataInicio={}'
+            'api/v2/proposicoes?siglaTipo={}&dataInicio={}&itens=100'
         ),
         'human': (
             'http://www.camara.gov.br/'
@@ -32,7 +32,7 @@ class CamaraSpider(BillSpider):
     def start_requests(self):
         for subject in self.subjects:
             url = self.urls['list'].format(subject, settings.START_DATE)
-            yield JsonRequest(url)
+            yield JsonRequest(url, meta={'is_first': True})
 
     def parse(self, response):
         """Parser p/ página que lista todos os PLs da Câmara"""
@@ -43,10 +43,21 @@ class CamaraSpider(BillSpider):
         for bill in bills:
             yield JsonRequest(bill.get('uri'), self.parse_bill)
 
+        if 'is_first' in response.meta:
+            yield from self.request_all_remaining_pages(links)
+
+    def request_all_remaining_pages(self, links):
+        pattern = r'pagina=(?P<last>\d+)'
         for link in links:
-            if link.get('rel') == 'next':
-                yield JsonRequest(link.get('href'))
-                break
+            if link.get('rel') == 'last':
+                url = link.get('href')
+                match = re.search(pattern, url)
+                last = int(match.group('last'))
+                urls = (
+                    re.sub(pattern, f'pagina={page}', url)
+                    for page in range(1, last + 1)
+                )
+                yield from (JsonRequest(url) for url in urls)
 
     def parse_bill(self, response):
         """Parser p/ página do PL. Encadeia o parser da página de autoria."""
