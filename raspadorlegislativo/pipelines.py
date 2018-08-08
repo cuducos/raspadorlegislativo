@@ -33,7 +33,10 @@ class RaspadorlegislativoPipeline:
         if 'palavras_chave' in data:
             data['palavras_chave'] = ', '.join(data['palavras_chave'])
 
-        return data
+        return {
+            key: value if isinstance(value, str) else str(value)
+            for key, value in data.items()
+        }
 
     def endpoint(self, item):
         endpoint = None
