@@ -9,4 +9,4 @@ def keyword_parser(path):
     with open(path) as fobj:
         data = load(fobj)
 
-    return set(keyword for keywords in data.values() for keyword in keywords)
+    return set(word.lower() for keywords in data.values() for word in keywords)
