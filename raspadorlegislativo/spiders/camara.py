@@ -12,7 +12,25 @@ from raspadorlegislativo.requests import JsonRequest
 from raspadorlegislativo.spiders import BillSpider
 
 
-class CamaraSpider(BillSpider):
+class CamaraMixin:
+
+    def request_all_remaining_pages(self, response):
+        contents = json.loads(response.body_as_unicode())
+        links = contents.get('links', tuple())
+        pattern = r'pagina=(?P<last>\d+)'
+        for link in links:
+            if link.get('rel') == 'last':
+                url = link.get('href')
+                match = re.search(pattern, url)
+                last = int(match.group('last'))
+                urls = (
+                    re.sub(pattern, f'pagina={page}', url)
+                    for page in range(1, last + 1)
+                )
+                yield from (JsonRequest(url) for url in urls)
+
+
+class CamaraSpider(BillSpider, CamaraMixin):
     """Raspa os dados da lista de todas as matérias que estão tramitando na
     Câmara, filtradas por Projeto de Lei."""
 
@@ -38,26 +56,12 @@ class CamaraSpider(BillSpider):
         """Parser p/ página que lista todos os PLs da Câmara"""
         contents = json.loads(response.body_as_unicode())
         bills = contents.get('dados', tuple())
-        links = contents.get('links', tuple())
 
         for bill in bills:
             yield JsonRequest(bill.get('uri'), self.parse_bill)
 
         if 'is_first' in response.meta:
-            yield from self.request_all_remaining_pages(links)
-
-    def request_all_remaining_pages(self, links):
-        pattern = r'pagina=(?P<last>\d+)'
-        for link in links:
-            if link.get('rel') == 'last':
-                url = link.get('href')
-                match = re.search(pattern, url)
-                last = int(match.group('last'))
-                urls = (
-                    re.sub(pattern, f'pagina={page}', url)
-                    for page in range(1, last + 1)
-                )
-                yield from (JsonRequest(url) for url in urls)
+            yield from self.request_all_remaining_pages(response)
 
     def parse_bill(self, response):
         """Parser p/ página do PL. Encadeia o parser da página de autoria."""
@@ -130,7 +134,7 @@ class CamaraSpider(BillSpider):
             yield Bill(response.meta['bill'])
 
 
-class AgendaCamaraSpider(Spider):
+class AgendaCamaraSpider(Spider, CamaraMixin):
     name = 'agenda_camara'
     allowed_domains = ('camara.leg.br',)
     urls = {
@@ -142,7 +146,7 @@ class AgendaCamaraSpider(Spider):
     }
 
     def start_requests(self):
-        yield JsonRequest(self.urls['api'])
+        yield JsonRequest(self.urls['api'], meta={'is_first': True})
 
     def parse(self, response):
         """Parser para página que lista todos os eventos da Câmara"""
@@ -154,10 +158,8 @@ class AgendaCamaraSpider(Spider):
                 meta={'event': event}
             )
 
-        for link in contents.get('links', tuple()):
-            if link.get('rel') == 'next':
-                yield JsonRequest(url=link.get('href'))
-                break
+        if 'is_first' in response.meta:
+            yield from self.request_all_remaining_pages(response)
 
     def parse_details(self, response):
         """Parse para a página HTML com detalhes de um evento da agenda"""

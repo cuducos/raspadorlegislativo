@@ -15,7 +15,7 @@ class RaspadorlegislativoPipeline:
         return cls(crawler)
 
     def process_item(self, item, spider):
-        if self.should_post and item['palavras_chave']:
+        if self.should_post and item.get('palavras_chave'):
             request = FormRequest(
                 self.endpoint(item),
                 formdata=self.serialize(item),
