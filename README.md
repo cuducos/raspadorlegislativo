@@ -37,13 +37,10 @@ Requer [Docker](https://docs.docker.com/install/) e
 Para rodar todos os raspadores:
 
 ```sh
-$ docker-compose run --rm scrapy python run.py
-```
-
-Ou, para rodar um em específico:
-
-```sh
-$ docker-compose run --rm scrapy scrapy crawl <nome do raspador>
+$ docker-compose run --rm scrapy scrapy crawl camara
+$ docker-compose run --rm scrapy scrapy crawl senado
+$ docker-compose run --rm scrapy scrapy crawl agenda_camara
+$ docker-compose run --rm scrapy scrapy crawl agenda_senado
 ```
 
 Verifique o resultado no diretótio `data/` (ou, se for o caso, na sua instância
@@ -69,13 +66,10 @@ $ pipenv shell
 Para rodar todos os raspadores:
 
 ```sh
-$ python run.py
-```
-
-Ou, para rodar um em específico:
-
-```sh
-$ scrapy crawl <nome do raspador>
+$ scrapy crawl camara
+$ scrapy crawl senado
+$ scrapy crawl agenda_camara
+$ scrapy crawl agenda_senado
 ```
 
 Verifique o resultado no diretótio `data/` (ou, se for o caso, na sua instância
