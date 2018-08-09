@@ -35,7 +35,7 @@ class CamaraSpider(BillSpider, CamaraMixin):
     Câmara, filtradas por Projeto de Lei."""
 
     name = 'camara'
-    subjects = ('PL',)
+    subjects = ('PL', 'PLS', 'PEC')
     urls = {
         'list': (
             'https://dadosabertos.camara.leg.br/'
@@ -116,7 +116,10 @@ class CamaraSpider(BillSpider, CamaraMixin):
             k: v for k, v in response.meta.items()
             if k in {'bill', 'keywords'}
         }
-        yield Request(url, self.parse_pdf, meta=meta)
+        if url:
+            yield Request(url, self.parse_pdf, meta=meta)
+        else:
+            yield self.item(meta)
 
     def parse_pdf(self, response):
         """Parser p/ PDF inteiro teor."""
@@ -127,11 +130,14 @@ class CamaraSpider(BillSpider, CamaraMixin):
             for keyword in (k for k in settings.KEYWORDS if k in text):
                 response.meta['bill']['palavras_chave'].add(keyword)
 
-        if not settings.KEYWORDS:
-            response.meta['bill']['palavras_chave'] = response.meta['keywords']
+        yield self.item(response.meta)
 
-        if not settings.KEYWORDS or response.meta['bill']['palavras_chave']:
-            yield Bill(response.meta['bill'])
+    def item(self, meta):
+        if not settings.KEYWORDS:
+            meta['bill']['palavras_chave'] = meta['keywords']
+
+        if not settings.KEYWORDS or meta['bill']['palavras_chave']:
+            return Bill(meta['bill'])
 
 
 class AgendaCamaraSpider(Spider, CamaraMixin):

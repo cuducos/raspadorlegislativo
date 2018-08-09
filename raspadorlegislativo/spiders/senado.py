@@ -14,7 +14,7 @@ class SenadoSpider(BillSpider):
     Senado, filtradas por Projeto de Lei no Senado."""
 
     name = 'senado'
-    subjects = ('PLS',)
+    subjects = ('PLS', 'PLC', 'PEC')
     urls = {
         'list': (
             'http://legis.senado.leg.br/'
