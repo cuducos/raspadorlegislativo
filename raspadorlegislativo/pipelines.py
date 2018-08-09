@@ -1,4 +1,6 @@
-from scrapy import FormRequest
+from urllib.error import HTTPError
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
 from raspadorlegislativo.items import Bill, Event
 from raspadorlegislativo.settings import KEYWORDS, RASPADOR_API_TOKEN, RASPADOR_API_URL
@@ -6,22 +8,16 @@ from raspadorlegislativo.settings import KEYWORDS, RASPADOR_API_TOKEN, RASPADOR_
 
 class RaspadorlegislativoPipeline:
 
-    def __init__(self, crawler):
-        self.crawler = crawler
+    def __init__(self):
         self.should_post = all((KEYWORDS, RASPADOR_API_TOKEN, RASPADOR_API_URL))
-
-    @classmethod
-    def from_crawler(cls, crawler):
-        return cls(crawler)
 
     def process_item(self, item, spider):
         if self.should_post and item.get('palavras_chave'):
-            request = FormRequest(
-                self.endpoint(item),
-                formdata=self.serialize(item),
-                callback=lambda resp: None
-            )
-            self.crawler.engine.crawl(request, spider)
+            try:
+                urlopen(Request(self.endpoint(item), data=self.serialize(item)))
+            except HTTPError as error:
+                content = error.read()
+                spider.logger.debug(f'[id_site={item["id_site"]} {content}')
 
         return item
 
@@ -33,10 +29,7 @@ class RaspadorlegislativoPipeline:
         if 'palavras_chave' in data:
             data['palavras_chave'] = ', '.join(data['palavras_chave'])
 
-        return {
-            key: value if isinstance(value, str) else str(value)
-            for key, value in data.items()
-        }
+        return urlencode(data).encode('ascii')
 
     def endpoint(self, item):
         endpoint = None
