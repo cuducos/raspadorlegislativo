@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 from decouple import config
@@ -14,7 +15,7 @@ from raspadorlegislativo.decouple import keyword_parser
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 BOT_NAME = 'raspadorlegislativo'
-LOG_LEVEL = config('LOG_LEVEL', default='DEBUG')
+LOG_LEVEL = config('LOG_LEVEL', default='DEBUG', cast=lambda l: getattr(logging, l))
 
 SPIDER_MODULES = ['raspadorlegislativo.spiders']
 NEWSPIDER_MODULE = 'raspadorlegislativo.spiders'
