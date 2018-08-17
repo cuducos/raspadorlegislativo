@@ -60,8 +60,7 @@ class SenadoSpider(BillSpider):
             'autoria': response.xpath('//NomeAutor/text()').extract_first(),
             'local': response.xpath('//NomeLocal/text()').extract_first(),
             'origem': 'SE',
-            'url': self.urls['humans'].format(response.meta['code']),
-            'inteiro_teor': []
+            'url': self.urls['humans'].format(response.meta['code'])
         }
 
         summary = ' '.join(
@@ -86,8 +85,6 @@ class SenadoSpider(BillSpider):
 
     def parse_pdf(self, response):
         with self.text_from_pdf(response) as text:
-            response.meta['bill']['inteiro_teor'] = \
-                response.meta['bill']['inteiro_teor'].append(text)
             text = text.lower()
             for keyword in (k for k in settings.KEYWORDS if k in text):
                 response.meta['bill']['palavras_chave'].add(keyword)

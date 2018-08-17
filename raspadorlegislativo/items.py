@@ -11,7 +11,6 @@ class Bill(Item):
     origem = Field()
     palavras_chave = Field()
     url = Field()
-    inteiro_teor = Field()
 
 
 class Event(Item):

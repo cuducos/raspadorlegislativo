@@ -73,8 +73,7 @@ class CamaraSpider(BillSpider, CamaraMixin):
             'apresentacao': bill.get('dataApresentacao')[:10],  # 10 chars date
             'ementa': bill.get('ementa'),
             'origem': 'CA',
-            'url': self.urls['human'].format(bill.get('id')),
-            'inteiro_teor': []
+            'url': self.urls['human'].format(bill.get('id'))
         }
         urls = {
             'local': bill.get('statusProposicao', {}).get('uriOrgao'),
@@ -124,9 +123,7 @@ class CamaraSpider(BillSpider, CamaraMixin):
     def parse_pdf(self, response):
         """Parser p/ PDF inteiro teor."""
         with self.text_from_pdf(response) as text:
-            response.meta['bill']['inteiro_teor'] = [text]
             text = text.lower()
-
             for keyword in (k for k in settings.KEYWORDS if k in text):
                 response.meta['bill']['palavras_chave'].add(keyword)
 
