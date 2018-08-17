@@ -90,7 +90,10 @@ class CamaraSpider(BillSpider, CamaraMixin):
 
         meta = {'bill': data, 'urls': urls, 'keywords': bill['keywords']}
         url = bill.get('uriAutores')
-        yield JsonRequest(url, self.parse_authorship, meta=meta)
+        if url:
+            yield JsonRequest(url, self.parse_authorship, meta=meta)
+        else:
+            yield self.item(response.meta)
 
     def parse_authorship(self, response):
         """Parser p/ página de autoria. Encadeia parser p/ página de local."""
@@ -99,26 +102,24 @@ class CamaraSpider(BillSpider, CamaraMixin):
         response.meta['bill']['autoria'] = ', '.join(authorship)
 
         url = response.meta['urls'].pop('local')
-        meta = {
-            k: v for k, v in response.meta.items()
-            if k in {'bill', 'urls', 'keywords'}
-        }
-        yield JsonRequest(url, self.parse_local, meta=meta)
+        if url:
+            yield JsonRequest(url, self.parse_local, meta=response.meta)
+        else:
+            yield self.item(response.meta)
 
     def parse_local(self, response):
         """Parser p/ página de local. Encadeia parser p/ inteiro teor."""
         local = json.loads(response.body_as_unicode()).get('dados', {})
-        response.meta['bill']['local'] = local.get('nome')
+        try:
+            response.meta['bill']['local'] = local.get('nome')
+        except AttributeError:
+            pass
 
         url = response.meta['urls'].pop('pdf')
-        meta = {
-            k: v for k, v in response.meta.items()
-            if k in {'bill', 'keywords'}
-        }
         if url:
-            yield Request(url, self.parse_pdf, meta=meta)
+            yield Request(url, self.parse_pdf, meta=response.meta)
         else:
-            yield self.item(meta)
+            yield self.item(response.meta)
 
     def parse_pdf(self, response):
         """Parser p/ PDF inteiro teor."""
@@ -130,8 +131,8 @@ class CamaraSpider(BillSpider, CamaraMixin):
         yield self.item(response.meta)
 
     def item(self, meta):
-        if not settings.KEYWORDS:
-            meta['bill']['palavras_chave'] = meta['keywords']
+        if not settings.KEYWORDS and meta['keywords']:
+            meta['bill']['palavras_chave'] = meta['keywords'].strip('. \t\n\t')
 
         if not settings.KEYWORDS or meta['bill']['palavras_chave']:
             return Bill(meta['bill'])
