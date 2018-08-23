@@ -24,7 +24,7 @@ class BillSpider(Spider):
                 )
                 yield contents
         except:
-            self.logger.info(f'Could not read the PDF for {response.url}')
+            self.logger.debug(f'Could not read the PDF for {response.url}')
             yield ''
 
         os.remove(tmp)
