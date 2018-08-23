@@ -68,6 +68,7 @@ class CamaraSpider(BillSpider, CamaraMixin):
         bill = json.loads(response.body_as_unicode()).get('dados', {})
         data = {
             'palavras_chave': set(),  # include matching keywords in this list
+            'palavras_chave_originais': bill.get('keywords', '').strip(' .\n\t\r'),
             'nome': '{} {}'.format(bill.get('siglaTipo'), bill.get('numero')),
             'id_site': bill.get('id'),
             'apresentacao': bill.get('dataApresentacao')[:10],  # 10 chars date
@@ -88,12 +89,12 @@ class CamaraSpider(BillSpider, CamaraMixin):
             if keyword in summary:
                 data['palavras_chave'].add(keyword)
 
-        meta = {'bill': data, 'urls': urls, 'keywords': bill['keywords']}
+        meta = {'bill': data, 'urls': urls}
         url = bill.get('uriAutores')
         if url:
             yield JsonRequest(url, self.parse_authorship, meta=meta)
         else:
-            yield self.item(response.meta)
+            yield self.item(response)
 
     def parse_authorship(self, response):
         """Parser p/ página de autoria. Encadeia parser p/ página de local."""
@@ -105,7 +106,7 @@ class CamaraSpider(BillSpider, CamaraMixin):
         if url:
             yield JsonRequest(url, self.parse_local, meta=response.meta)
         else:
-            yield self.item(response.meta)
+            yield self.item(response)
 
     def parse_local(self, response):
         """Parser p/ página de local. Encadeia parser p/ inteiro teor."""
@@ -119,7 +120,7 @@ class CamaraSpider(BillSpider, CamaraMixin):
         if url:
             yield Request(url, self.parse_pdf, meta=response.meta)
         else:
-            yield self.item(response.meta)
+            yield self.item(response)
 
     def parse_pdf(self, response):
         """Parser p/ PDF inteiro teor."""
@@ -128,14 +129,14 @@ class CamaraSpider(BillSpider, CamaraMixin):
             for keyword in (k for k in settings.KEYWORDS if k in text):
                 response.meta['bill']['palavras_chave'].add(keyword)
 
-        yield self.item(response.meta)
+        yield self.item(response)
 
-    def item(self, meta):
-        if not settings.KEYWORDS and meta['keywords']:
-            meta['bill']['palavras_chave'] = meta['keywords'].strip('. \t\n\t')
+    def item(self, response):
+        if not settings.KEYWORDS:  # catch all mode
+            return Bill(response.meta['bill'])
 
-        if not settings.KEYWORDS or meta['bill']['palavras_chave']:
-            return Bill(meta['bill'])
+        if response.meta['bill']['palavras_chave']:  # looking for keywords
+            return Bill(response.meta['bill'])
 
 
 class AgendaCamaraSpider(Spider, CamaraMixin):

@@ -10,6 +10,7 @@ class Bill(Item):
     local = Field()
     origem = Field()
     palavras_chave = Field()
+    palavras_chave_originais = Field()
     url = Field()
 
 
