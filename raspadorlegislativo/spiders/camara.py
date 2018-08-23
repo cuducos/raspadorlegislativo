@@ -48,9 +48,9 @@ class CamaraSpider(BillSpider, CamaraMixin):
     }
 
     def start_requests(self):
-        for subject in self.subjects:
-            url = self.urls['list'].format(subject, settings.START_DATE)
-            yield JsonRequest(url, meta={'is_first': True})
+        subjects = ','.join(self.subjects)
+        url = self.urls['list'].format(subjects, settings.START_DATE)
+        yield JsonRequest(url, meta={'is_first': True})
 
     def parse(self, response):
         """Parser p/ página que lista todos os PLs da Câmara"""
