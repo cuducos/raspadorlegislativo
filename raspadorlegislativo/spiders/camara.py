@@ -25,9 +25,9 @@ class CamaraMixin:
                 last = int(match.group('last'))
                 urls = (
                     re.sub(pattern, f'pagina={page}', url)
-                    for page in range(1, last + 1)
+                    for page in range(2, last + 1)
                 )
-                yield from (JsonRequest(url) for url in urls)
+                return (JsonRequest(url) for url in urls)
 
 
 class CamaraSpider(BillSpider, CamaraMixin):
