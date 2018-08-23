@@ -2,7 +2,7 @@ from json import dump
 from os import remove
 from tempfile import mkstemp
 
-from raspadorlegislativo.utils.decouple import keyword_parser
+from raspadorlegislativo.decouple import keyword_parser
 
 
 def test_keyword_parser():
