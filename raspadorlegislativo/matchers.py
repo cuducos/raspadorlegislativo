@@ -42,7 +42,7 @@ class Matcher:
            `text`
         3. even if the previous rules are true, it will still return `False`
            if any word/expression in `self.exclude` is present in `text`"""
-        text = text.lower()
+        text = text.lower() if text else ''
 
         matches = tuple(self._matches(text))
         if not matches:
