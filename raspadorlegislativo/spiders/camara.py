@@ -105,10 +105,7 @@ class CamaraSpider(BillSpider, CamaraMixin):
     def parse_local(self, response):
         """Parser p/ página de local. Encadeia parser p/ inteiro teor."""
         local = json.loads(response.body_as_unicode()).get('dados', {})
-        try:
-            response.meta['bill']['local'] = local.get('nome')
-        except AttributeError:
-            pass
+        response.meta['bill']['local'] = local.get('nome')
 
         url = response.meta['urls'].pop('pdf')
         if url:
