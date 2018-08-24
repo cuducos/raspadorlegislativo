@@ -65,9 +65,14 @@ class CamaraSpider(BillSpider, CamaraMixin):
     def parse_bill(self, response):
         """Parser p/ página do PL. Encadeia o parser da página de autoria."""
         bill = json.loads(response.body_as_unicode()).get('dados', {})
+
+        keywords = bill.get('keywords')
+        if not isinstance(keywords, str):
+            keywords = ''
+
         data = {
             'palavras_chave': set(),  # include matching keywords in this list
-            'palavras_chave_originais': bill.get('keywords', '').strip(' .\n\t\r'),
+            'palavras_chave_originais': keywords.strip(' .\n\t\r'),
             'nome': '{} {}'.format(bill.get('siglaTipo'), bill.get('numero')),
             'id_site': bill.get('id'),
             'apresentacao': bill.get('dataApresentacao')[:10],  # 10 chars date
