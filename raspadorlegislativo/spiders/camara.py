@@ -124,6 +124,9 @@ class CamaraSpider(BillSpider, CamaraMixin):
         yield self.item(response)
 
     def item(self, response):
+        response.meta['bill']['palavras_chave'] = \
+            ', '.join(response.meta['bill']['palavras_chave'])
+
         if not settings.MATCHERS:  # catch all mode
             return Bill(response.meta['bill'])
 

@@ -92,6 +92,7 @@ class SenadoSpider(BillSpider):
         item = response.meta['bill']
 
         if not pending_texts:
+            item['palavras_chave'] = ', '.join(item['palavras_chave'])
             if not settings.MATCHERS:
                 return Bill(item)
 
