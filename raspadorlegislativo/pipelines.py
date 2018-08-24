@@ -8,11 +8,12 @@ from raspadorlegislativo.settings import KEYWORDS, RASPADOR_API_TOKEN, RASPADOR_
 
 class RaspadorlegislativoPipeline:
 
-    def __init__(self):
-        self.should_post = all((KEYWORDS, RASPADOR_API_TOKEN, RASPADOR_API_URL))
+    @staticmethod
+    def should_post():
+        return all((KEYWORDS, RASPADOR_API_TOKEN, RASPADOR_API_URL))
 
     def process_item(self, item, spider):
-        if self.should_post and item.get('palavras_chave'):
+        if self.should_post() and item.get('palavras_chave'):
             try:
                 urlopen(Request(self.endpoint(item), data=self.serialize(item)))
             except HTTPError as error:
@@ -24,7 +25,6 @@ class RaspadorlegislativoPipeline:
     def serialize(self, item):
         data = dict(item)
         data['token'] = RASPADOR_API_TOKEN
-        data.pop('inteiro_teor')
 
         if 'palavras_chave' in data:
             data['palavras_chave'] = ', '.join(data['palavras_chave'])
