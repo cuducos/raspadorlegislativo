@@ -5,6 +5,9 @@ from tempfile import mkstemp
 from PyPDF2 import PdfFileReader
 from scrapy import Spider
 
+from raspadorlegislativo import settings
+from raspadorlegislativo.items import Bill
+
 
 class BillSpider(Spider):
 
@@ -28,3 +31,12 @@ class BillSpider(Spider):
             yield ''
 
         os.remove(tmp)
+
+    @staticmethod
+    def collect_keywords(bill, text):
+        for matcher in settings.MATCHERS:
+            matched, keywords = matcher.match(text)
+            if matched:
+                for keyword in keywords:
+                    bill['palavras_chave'].add(keyword)
+        return bill

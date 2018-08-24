@@ -3,7 +3,7 @@ from pathlib import Path
 
 from decouple import config
 
-from raspadorlegislativo.decouple import keyword_parser
+from raspadorlegislativo.matchers import keyword_matcher_parser
 
 # Scrapy settings for raspadorlegislativo project
 #
@@ -96,7 +96,7 @@ HTTPCACHE_STORAGE = 'scrapy_memcached_cache.MemcachedCacheStorage'
 MEMCACHED_LOCATION = config('MEMCACHED_LOCATION')
 
 # Settings for Scrapy to filter and save bills
-KEYWORDS = config('KEYWORDS', default='{}', cast=keyword_parser)
+MATCHERS = config('KEYWORDS', default=None, cast=keyword_matcher_parser)
 START_DATE = config('START_DATE')
 FEED_FORMAT = 'csv'
 FEED_URI = str(Path() / 'data' / '%(name)s-%(time)s.csv')

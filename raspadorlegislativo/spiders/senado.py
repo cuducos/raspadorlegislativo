@@ -53,6 +53,7 @@ class SenadoSpider(BillSpider):
 
         data = {
             'palavras_chave': set(),  # include matching keywords in this list
+            'palavras_chave_originais': keywords,
             'nome': f'{subject} {number}',
             'id_site': response.xpath('//CodigoMateria/text()').extract_first(),
             'apresentacao': response.xpath('//DataApresentacao/text()').extract_first(),
@@ -62,14 +63,8 @@ class SenadoSpider(BillSpider):
             'origem': 'SE',
             'url': self.urls['humans'].format(response.meta['code'])
         }
-
-        summary = ' '.join(
-            text.lower() for text in (description, keywords)
-            if text
-        )
-        for keyword in settings.KEYWORDS:
-            if keyword in summary:
-                data['palavras_chave'].add(keyword)
+        data = self.collect_keywords(data, description)
+        data = self.collect_keywords(data, keywords)
 
         url = self.urls['texts'].format(response.meta['code'])
         meta = {'bill': data, 'keywords': keywords}
@@ -85,9 +80,10 @@ class SenadoSpider(BillSpider):
 
     def parse_pdf(self, response):
         with self.text_from_pdf(response) as text:
-            text = text.lower()
-            for keyword in (k for k in settings.KEYWORDS if k in text):
-                response.meta['bill']['palavras_chave'].add(keyword)
+            response.meta['bill'] = self.collect_keywords(
+                response.meta['bill'],
+                text
+            )
 
         pending_texts = response.meta.get('urls')
         yield self.next_pdf_or_item(response, pending_texts)
@@ -96,10 +92,10 @@ class SenadoSpider(BillSpider):
         item = response.meta['bill']
 
         if not pending_texts:
-            if not settings.KEYWORDS and not item['palavras_chave']:
-                item['palavras_chave'] = response.meta['keywords']
+            if not settings.MATCHERS:
+                return Bill(item)
 
-            if not settings.KEYWORDS or item['palavras_chave']:
+            if item['palavras_chave']:
                 return Bill(item)
 
             return None

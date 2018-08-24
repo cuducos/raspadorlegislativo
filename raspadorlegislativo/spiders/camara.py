@@ -76,18 +76,13 @@ class CamaraSpider(BillSpider, CamaraMixin):
             'origem': 'CA',
             'url': self.urls['human'].format(bill.get('id'))
         }
+        data = self.collect_keywords(data, data.get('ementa', ''))
+        data = self.collect_keywords(data, data.get('keywords', ''))
+
         urls = {
             'local': bill.get('statusProposicao', {}).get('uriOrgao'),
             'pdf': bill.get('urlInteiroTeor')
         }
-
-        summary = ' '.join(
-            text.lower() for text in (data['ementa'], bill.get('keywords'))
-            if text
-        )
-        for keyword in settings.KEYWORDS:
-            if keyword in summary:
-                data['palavras_chave'].add(keyword)
 
         meta = {'bill': data, 'urls': urls}
         url = bill.get('uriAutores')
@@ -125,14 +120,15 @@ class CamaraSpider(BillSpider, CamaraMixin):
     def parse_pdf(self, response):
         """Parser p/ PDF inteiro teor."""
         with self.text_from_pdf(response) as text:
-            text = text.lower()
-            for keyword in (k for k in settings.KEYWORDS if k in text):
-                response.meta['bill']['palavras_chave'].add(keyword)
+            response.meta['bill'] = self.collect_keywords(
+                response.meta['bill'],
+                text
+            )
 
         yield self.item(response)
 
     def item(self, response):
-        if not settings.KEYWORDS:  # catch all mode
+        if not settings.MATCHERS:  # catch all mode
             return Bill(response.meta['bill'])
 
         if response.meta['bill']['palavras_chave']:  # looking for keywords

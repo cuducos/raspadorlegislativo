@@ -1,20 +1,10 @@
-from json import dump
-from os import remove
-from tempfile import mkstemp
+from pathlib import Path
 
-from raspadorlegislativo.decouple import keyword_parser
+from raspadorlegislativo.matchers import Matcher, keyword_matcher_parser
 
 
 def test_keyword_parser():
-    data = {
-        'tag1': ('keyword1', 'keyword2'),
-        'tag2': ('keyword3', 'keyword4', 'keyword5')
-    }
-
-    _, tmp = mkstemp(suffix='.json')
-    with open(tmp, 'w') as fobj:
-        dump(data, fobj)
-
-    expected = set(f'keyword{num}' for num in range(1, 6))
-    assert keyword_parser(tmp) == expected
-    remove(tmp)
+    path = Path() / 'secrets' / 'keywords.json.sample'
+    matchers = keyword_matcher_parser(path)
+    assert 3 == len(matchers)
+    assert all(isinstance(matcher, Matcher) for matcher in matchers)

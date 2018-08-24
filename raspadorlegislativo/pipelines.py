@@ -3,14 +3,14 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from raspadorlegislativo.items import Bill, Event
-from raspadorlegislativo.settings import KEYWORDS, RASPADOR_API_TOKEN, RASPADOR_API_URL
+from raspadorlegislativo.settings import MATCHERS, RASPADOR_API_TOKEN, RASPADOR_API_URL
 
 
 class RaspadorlegislativoPipeline:
 
     @staticmethod
     def should_post():
-        return all((KEYWORDS, RASPADOR_API_TOKEN, RASPADOR_API_URL))
+        return all((MATCHERS, RASPADOR_API_TOKEN, RASPADOR_API_URL))
 
     def process_item(self, item, spider):
         if self.should_post() and item.get('palavras_chave'):
