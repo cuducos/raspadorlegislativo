@@ -68,7 +68,7 @@ class SenadoSpider(BillSpider):
 
         url = self.urls['texts'].format(response.meta['code'])
         meta = {'bill': data, 'keywords': keywords}
-        yield Request(url, self.parse_texts, meta=meta)
+        yield Request(url, self.parse_texts, meta=meta, errback=self.error)
 
     def parse_texts(self, response):
         pending_texts = tuple(
@@ -106,7 +106,7 @@ class SenadoSpider(BillSpider):
             'urls': urls,
             'keywords': response.meta['keywords']
         }
-        return Request(url, self.parse_pdf, meta=meta)
+        return Request(url, self.parse_pdf, meta=meta, errback=self.error)
 
 
 class AgendaSenadoSpider(Spider):

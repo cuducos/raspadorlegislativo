@@ -56,9 +56,8 @@ class CamaraSpider(BillSpider, CamaraMixin):
         """Parser p/ página que lista todos os PLs da Câmara"""
         contents = json.loads(response.body_as_unicode())
         bills = contents.get('dados', tuple())
-
         for bill in bills:
-            yield JsonRequest(bill.get('uri'), self.parse_bill)
+            yield JsonRequest(bill.get('uri'), self.parse_bill, errback=self.error)
 
         if 'is_first' in response.meta:
             yield from self.request_all_remaining_pages(response)
@@ -87,7 +86,7 @@ class CamaraSpider(BillSpider, CamaraMixin):
         meta = {'bill': data, 'urls': urls}
         url = bill.get('uriAutores')
         if url:
-            yield JsonRequest(url, self.parse_authorship, meta=meta)
+            yield JsonRequest(url, self.parse_authorship, meta=meta, errback=self.error)
         else:
             yield self.item(response)
 
@@ -99,7 +98,7 @@ class CamaraSpider(BillSpider, CamaraMixin):
 
         url = response.meta['urls'].pop('local')
         if url:
-            yield JsonRequest(url, self.parse_local, meta=response.meta)
+            yield JsonRequest(url, self.parse_local, meta=response.meta, errback=self.error)
         else:
             yield self.item(response)
 
@@ -113,7 +112,7 @@ class CamaraSpider(BillSpider, CamaraMixin):
 
         url = response.meta['urls'].pop('pdf')
         if url:
-            yield Request(url, self.parse_pdf, meta=response.meta)
+            yield Request(url, self.parse_pdf, meta=response.meta, errback=self.error)
         else:
             yield self.item(response)
 

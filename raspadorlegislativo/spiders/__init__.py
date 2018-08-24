@@ -4,6 +4,7 @@ from tempfile import mkstemp
 
 from PyPDF2 import PdfFileReader
 from scrapy import Spider
+from scrapy.spidermiddlewares.httperror import HttpError
 
 from raspadorlegislativo import settings
 from raspadorlegislativo.items import Bill
@@ -40,3 +41,12 @@ class BillSpider(Spider):
                 for keyword in keywords:
                     bill['palavras_chave'].add(keyword)
         return bill
+
+    def error(self, failure):
+        self.logger.error(repr(failure))
+        if not failure.check(HttpError):
+            return
+
+        response = failure.value.response
+        if 'bill' in response.meta:
+            yield Bill(response.meta['bill'])
