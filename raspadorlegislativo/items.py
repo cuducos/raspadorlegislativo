@@ -19,3 +19,4 @@ class Event(Item):
     data = Field()
     local = Field()
     descricao = Field()
+    origem = Field()

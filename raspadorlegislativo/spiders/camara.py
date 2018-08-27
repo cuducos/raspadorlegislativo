@@ -177,6 +177,7 @@ class AgendaCamaraSpider(Spider, CamaraMixin):
 
         if venue:
             yield Event(
+                origem='CA',
                 id_site=response.meta['event']['id'],
                 data=self.parse_date(response.meta['event']),
                 descricao=self.parse_description(response),

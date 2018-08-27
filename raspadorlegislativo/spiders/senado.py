@@ -126,10 +126,12 @@ class AgendaSenadoSpider(Spider):
         for event in response.xpath('Reuniao'):
             if self.is_related_to_a_bill(event):
                 yield Event(
+                    origem='SE',
                     id_site=event.xpath('Codigo/text()').extract_first(),
                     data=self.parse_date(event),
                     descricao=self.parse_description(event),
-                    local=event.xpath('Comissoes/Comissao/Nome/text()').extract_first()                )
+                    local=event.xpath('Comissoes/Comissao/Nome/text()').extract_first()
+                )
 
     @staticmethod
     def is_related_to_a_bill(event):
