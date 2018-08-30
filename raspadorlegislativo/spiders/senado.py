@@ -58,7 +58,8 @@ class SenadoSpider(BillSpider):
             'id_site': response.xpath('//CodigoMateria/text()').extract_first(),
             'apresentacao': response.xpath('//DataApresentacao/text()').extract_first(),
             'ementa': description,
-            'autoria': response.xpath('//NomeAutor/text()').extract_first(),
+            'autoria': ', '.join(response.xpath('//NomeAutor/text()').extract()),
+            'autoria_ids': ', '.join(response.xpath('//IdentificacaoParlamentar/CodigoParlamentar/text()').extract()),
             'local': response.xpath('//NomeLocal/text()').extract_first(),
             'origem': 'SE',
             'url': self.urls['humans'].format(response.meta['code'])

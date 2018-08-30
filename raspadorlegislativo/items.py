@@ -7,6 +7,7 @@ class Bill(Item):
     apresentacao = Field()
     ementa = Field()
     autoria = Field()
+    autoria_ids = Field()
     local = Field()
     origem = Field()
     palavras_chave = Field()

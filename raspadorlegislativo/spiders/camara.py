@@ -97,9 +97,21 @@ class CamaraSpider(BillSpider, CamaraMixin):
 
     def parse_authorship(self, response):
         """Parser p/ página de autoria. Encadeia parser p/ página de local."""
+
+        def get_ids(authors):
+            for author in authors:
+                uri = author.get('uri') or ''
+                matches = re.findall(r'\d+$', uri)
+                if matches:
+                    *_, author_id = matches
+                    if author_id:
+                        yield author_id
+
         data = json.loads(response.body_as_unicode())
-        authorship = (author.get('nome') for author in data.get('dados'))
+        authors = data.get('dados')
+        authorship = (author.get('nome') for author in authors)
         response.meta['bill']['autoria'] = ', '.join(authorship)
+        response.meta['bill']['autoria_ids'] = ', '.join(get_ids(authors))
 
         url = response.meta['urls'].pop('local')
         if url:
