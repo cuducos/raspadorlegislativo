@@ -17,6 +17,16 @@ def test_simple_match():
     assert matcher.match('tchau Corrupção') == (True, ('corrupção',))
     assert matcher.match('oi mundo') == (False, tuple())
 
+# Many cases for fine tunning regex matching
+    assert matcher.match('tchauCorrupção!!!!') == (False, tuple())
+    assert matcher.match(' aaCorrupçãobbb') == (False, tuple())
+    assert matcher.match('corrupção e segue o texto') == (True, ('corrupção',))
+    assert matcher.match('segue o texto.. Corrupção') == (True, ('corrupção',))
+    assert matcher.match('!Corrupção.') == (True, ('corrupção',))
+    assert matcher.match('Corrupção.') == (True, ('corrupção',))
+    assert matcher.match(' Corrupção.') == (True, ('corrupção',))
+    assert matcher.match(' corrupção.') == (True, ('corrupção',))
+    assert matcher.match('corrupção.') == (True, ('corrupção',))
 
 def test_match_with_excude():
     data = RULES.copy()

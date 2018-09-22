@@ -1,4 +1,5 @@
 import os
+import re
 from json import load
 
 
@@ -23,7 +24,11 @@ class Matcher:
 
     def _matches(self, text):
         """Returns the keywords and combined keywords found in `text`"""
-        yield from (word for word in self.keywords if word in text)
+        for word in self.keywords:
+            pattern = f'(\\W{word}\\W)|(^{word}\\W)|(\\W{word}$)'
+            matches = re.findall(pattern, text)
+            if matches:
+                yield word
 
         for group in self.combined_keywords:
             matches = tuple(word in text for word in group)
