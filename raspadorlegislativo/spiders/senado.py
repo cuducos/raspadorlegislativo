@@ -17,8 +17,8 @@ class SenadoSpider(BillSpider):
     subjects = ('PLS', 'PLC', 'PEC')
     urls = {
         'list': (
-            'http://legis.senado.leg.br/'
-            'dadosabertos/materia/tramitando?sigla={}&data={}'
+            'http://legis.senado.leg.br/dadosabertos/'
+            'materia/pesquisa/lista?sigla={}&tramitando=S&dataInicioApresentacao={}'
         ),
         'detail':  'http://legis.senado.leg.br/dadosabertos/materia/{}',
         'texts': 'http://legis.senado.leg.br/dadosabertos/materia/textos/{}',
