@@ -1,4 +1,4 @@
-FROM python:3.6.5-alpine
+FROM python:3.6.7-alpine
 
 WORKDIR /code
 
