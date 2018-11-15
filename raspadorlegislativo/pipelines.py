@@ -36,7 +36,7 @@ class RaspadorlegislativoPipeline:
         if isinstance(item, Bill):
             endpoint = 'projeto/'
         elif isinstance(item, Event):
-            endpoint = 'tramitacao/'
+            endpoint = 'evento/'
 
         if not endpoint:
             raise ValueError(f'No endpoint set for {item._class}')
