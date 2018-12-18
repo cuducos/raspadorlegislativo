@@ -227,4 +227,4 @@ class AgendaCamaraSpider(Spider, CamaraMixin):
     @staticmethod
     def parse_date(event):
         naive = datetime.strptime(event['dataHoraInicio'], '%Y-%m-%dT%H:%M')
-        return naive.strftime('%d/%m/%Y')
+        return naive.strftime('%Y-%m-%d')
