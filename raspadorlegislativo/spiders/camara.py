@@ -205,22 +205,26 @@ class AgendaCamaraSpider(Spider, CamaraMixin):
 
     def parse_description(self, response):
         """Trata o texto da descrição com base no HTML de detalhe do evento"""
-        *_, description = response.css('.caixaCOnteudo')
+        if bool(response.css('.caixaCOnteudo')):
+            *_, description = response.css('.caixaCOnteudo')
 
-        # remove nós indesejados do HTML
-        for selector in ('style', '.vejaTambem'):
-            description = self.remove_node(description, selector)
+            # remove nós indesejados do HTML
+            for selector in ('style', '.vejaTambem'):
+                description = self.remove_node(description, selector)
 
-        # remove caracteres indesejados do HTML
-        description = description.extract()
-        for char in ('\n', '\t', '\r'):
-            description.replace(char, '')
+            # remove caracteres indesejados do HTML
+            description = description.extract()
+            for char in ('\n', '\t', '\r'):
+                description.replace(char, '')
 
-        # remove espaços do início das linhas
-        description = markdownify(description)
-        return '\n'.join(line.strip() for line in description.split('\n'))
+            # remove espaços do início das linhas
+            description = markdownify(description)
+            return '\n'.join(line.strip() for line in description.split('\n'))
+
+        description = ' em branco'
+        return description
 
     @staticmethod
     def parse_date(event):
         naive = datetime.strptime(event['dataHoraInicio'], '%Y-%m-%dT%H:%M')
-        return naive.replace(tzinfo=timezone('America/Sao_Paulo'))
+        return naive.strftime('%d/%m/%Y')

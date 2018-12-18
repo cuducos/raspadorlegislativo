@@ -9,11 +9,14 @@ from raspadorlegislativo.settings import MATCHERS, RASPADOR_API_TOKEN, RASPADOR_
 class RaspadorlegislativoPipeline:
 
     @staticmethod
-    def should_post():
-        return all((MATCHERS, RASPADOR_API_TOKEN, RASPADOR_API_URL))
+    def should_post(item):
+        should_post = all((MATCHERS, RASPADOR_API_TOKEN, RASPADOR_API_URL))
+        if isinstance(item, Bill):  # only posts bills with matching keywords
+            return should_post and bool(item.get('palavras_chave'))
+        return should_post
 
     def process_item(self, item, spider):
-        if self.should_post() and item.get('palavras_chave'):
+        if self.should_post(item):
             try:
                 urlopen(Request(self.endpoint(item), data=self.serialize(item)))
             except HTTPError as error:
