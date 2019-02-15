@@ -182,10 +182,9 @@ class AgendaCamaraSpider(Spider, CamaraMixin):
         """Parse para a página HTML com detalhes de um evento da agenda"""
         venues, venue = response.meta['event']['orgaos'], None
         for _venue in venues:
-            for key in ('sigla', 'apelido'):
-                for subject in CamaraSpider.subjects:
-                    if re.findall(r'{} ?\d+'.format(subject), _venue[key]):
-                        venue = _venue
+            if _venue['nome']:
+                venue = _venue
+                break
 
         if venue:
             yield Event(
