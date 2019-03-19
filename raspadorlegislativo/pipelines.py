@@ -30,7 +30,8 @@ class RaspadorlegislativoPipeline:
         data['token'] = RASPADOR_API_TOKEN
 
         if 'palavras_chave' in data:
-            data['palavras_chave'] = ', '.join(data['palavras_chave'])
+            if not isinstance(data['palavras_chave'], str):
+                data['palavras_chave'] = ', '.join(data['palavras_chave'])
 
         return urlencode(data).encode('ascii')
 
