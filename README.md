@@ -54,7 +54,7 @@ docker-compose run --rm scrapy py.test
 
 ## Instalação local (sem Docker)
 
-Requer [Python](https://python.org) 3.6 com [Pipenv](https://docs.pipenv.org/).
+Requer [Python](https://python.org) 3.9 com [Pipenv](https://docs.pipenv.org/).
 
 Instale as dependências e entre no _virtualenv_:
 
