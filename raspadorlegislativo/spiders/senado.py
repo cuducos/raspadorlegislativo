@@ -21,6 +21,7 @@ class SenadoSpider(BillSpider):
             'materia/pesquisa/lista?sigla={}&tramitando=S&dataInicioApresentacao={}'
         ),
         'detail':  'http://legis.senado.leg.br/dadosabertos/materia/{}',
+        'authorship': 'http://legis.senado.leg.br/dadosabertos/materia/autoria/{}',
         'texts': 'http://legis.senado.leg.br/dadosabertos/materia/textos/{}',
         'humans': (
             'https://www25.senado.leg.br/'
@@ -36,7 +37,7 @@ class SenadoSpider(BillSpider):
 
     def parse(self, response):
         """Parser para página que lista todos os PLS."""
-        codes = response.xpath('//CodigoMateria/text()').extract()
+        codes = response.xpath('//Codigo/text()').extract()
         for code in codes:
             yield Request(
                 url=self.urls['detail'].format(code),
@@ -58,8 +59,6 @@ class SenadoSpider(BillSpider):
             'id_site': response.xpath('//CodigoMateria/text()').extract_first(),
             'apresentacao': response.xpath('//DataApresentacao/text()').extract_first(),
             'ementa': description,
-            'autoria': ', '.join(response.xpath('//NomeAutor/text()').extract()),
-            'autoria_ids': ', '.join(response.xpath('//IdentificacaoParlamentar/CodigoParlamentar/text()').extract()),
             'local': response.xpath('//NomeLocal/text()').extract_first(),
             'origem': 'SE',
             'url': self.urls['humans'].format(response.meta['code'])
@@ -67,8 +66,18 @@ class SenadoSpider(BillSpider):
         data = self.collect_keywords(data, description)
         data = self.collect_keywords(data, keywords)
 
+        url = self.urls['authorship'].format(response.meta['code'])
+        meta = {'bill': data, 'keywords': keywords, 'code': response.meta['code']}
+        yield Request(url, self.parse_authorship, meta=meta, errback=self.error)
+
+    def parse_authorship(self, response):
+        meta = response.meta.copy()
+
+        meta['bill']['autoria'] = ', '.join(response.xpath('//NomeAutor/text()').extract())
+        meta['bill']['autoria_ids'] = ', '.join(response.xpath('//IdentificacaoParlamentar/CodigoParlamentar/text()').extract())
+
         url = self.urls['texts'].format(response.meta['code'])
-        meta = {'bill': data, 'keywords': keywords}
+
         yield Request(url, self.parse_texts, meta=meta, errback=self.error)
 
     def parse_texts(self, response):
