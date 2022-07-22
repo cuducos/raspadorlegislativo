@@ -1,5 +1,6 @@
 import re
 from datetime import date, datetime, timedelta
+from itertools import product
 
 from scrapy import Request, Spider
 from pytz import timezone
@@ -18,7 +19,7 @@ class SenadoSpider(BillSpider):
     urls = {
         'list': (
             'http://legis.senado.leg.br/dadosabertos/'
-            'materia/pesquisa/lista?sigla={}&tramitando=S&dataInicioApresentacao={}'
+            'materia/tramitando?sigla={}&ano={}'
         ),
         'detail':  'http://legis.senado.leg.br/dadosabertos/materia/{}',
         'authorship': 'http://legis.senado.leg.br/dadosabertos/materia/autoria/{}',
@@ -29,20 +30,16 @@ class SenadoSpider(BillSpider):
         )
     }
 
-    @staticmethod
-    def date_parameters(start_date):
-        formatted_start_date = start_date.isoformat().replace('-', '')
-        return [formatted_start_date] + [f"{year}0101" for year in range(start_date.year + 1, date.today().year + 1)]
-
     def start_requests(self):
-        for date_parameter in self.date_parameters(date.fromisoformat(settings.START_DATE)):
-            for subject in self.subjects:
-                url = self.urls['list'].format(subject, date_parameter)
-                yield Request(url=url)
+        start_date = date.fromisoformat(settings.START_DATE)
+        years = range(start_date.year, date.today().year + 1)
+        url = self.urls['list']
+        for year, subject in product(years, self.subjects):
+            yield Request(url=url.format(subject, year))
 
     def parse(self, response):
         """Parser para página que lista todos os PLS."""
-        codes = response.xpath('//Codigo/text()').extract()
+        codes = response.xpath('//CodigoMateria/text()').extract()
         for code in codes:
             yield Request(
                 url=self.urls['detail'].format(code),
