@@ -29,11 +29,16 @@ class SenadoSpider(BillSpider):
         )
     }
 
+    @staticmethod
+    def date_parameters(start_date):
+        formatted_start_date = start_date.isoformat().replace('-', '')
+        return [formatted_start_date] + [f"{year}0101" for year in range(start_date.year + 1, date.today().year + 1)]
+
     def start_requests(self):
-        for subject in self.subjects:
-            start_date = settings.START_DATE.replace('-', '')
-            url = self.urls['list'].format(subject, start_date)
-            yield Request(url=url)
+        for date_parameter in self.date_parameters(date.fromisoformat(settings.START_DATE)):
+            for subject in self.subjects:
+                url = self.urls['list'].format(subject, date_parameter)
+                yield Request(url=url)
 
     def parse(self, response):
         """Parser para página que lista todos os PLS."""
