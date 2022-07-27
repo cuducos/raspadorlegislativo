@@ -1,6 +1,5 @@
 *.pyc
 .env
-.idea/
 .pytest_cache/
 .scrapy/
 __pycache__/
