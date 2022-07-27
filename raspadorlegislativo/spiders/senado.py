@@ -1,5 +1,6 @@
 import re
 from datetime import date, datetime, timedelta
+from itertools import product
 
 from scrapy import Request, Spider
 from pytz import timezone
@@ -29,16 +30,15 @@ class SenadoSpider(BillSpider):
         )
     }
 
-    @staticmethod
-    def date_parameters(start_date_str):
-        yield start_date_str.replace('-', '')
-        start_date = date.fromisoformat(start_date_str)
-        yield from (date(year, 1, 1).strftime("%Y%m%d") for year in range(start_date.year + 1, date.today().year + 1))
-
     def start_requests(self):
-        for date_parameter in self.date_parameters(settings.START_DATE):
-            url = self.urls['list']
-            yield from (Request(url=url.format(subject, date_parameter)) for subject in self.subjects)
+        start_date = date.fromisoformat(settings.START_DATE)
+        years = range(start_date.year, date.today().year + 1)
+        dates = (date(year, 1, 1) for year in years)
+        url = self.urls['list']
+        for start_at, subject in product(dates, self.subjects):
+            if start_at.year == start_date.year:
+                start_at = start_date
+            yield Request(url=url.format(subject, start_at.strftime("%Y%m%d")))
 
     def parse(self, response):
         """Parser para página que lista todos os PLS."""
