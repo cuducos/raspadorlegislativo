@@ -33,7 +33,7 @@ class SenadoSpider(BillSpider):
     def date_parameters(start_date_str):
         yield start_date_str.replace('-', '')
         start_date = date.fromisoformat(start_date_str)
-        yield from (f'{year}0101' for year in range(start_date.year + 1, date.today().year + 1))
+        yield from (date(year, 1, 1).strftime("%Y%m%d") for year in range(start_date.year + 1, date.today().year + 1))
 
     def start_requests(self):
         for date_parameter in self.date_parameters(settings.START_DATE):
