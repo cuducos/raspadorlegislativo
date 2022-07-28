@@ -21,7 +21,7 @@ sobre **todos** os projetos de lei em tramitação desde `START_DATE`, mas
 nesse caso o _Raspador_ **não** envia os resultados para a API do
 _Radar Legislativo_.
 
-**Obs**: A spider do senado coleta dados a partir do ano em `START_DATE`,
+**Obs**: A _spider_ do Senado Federal coleta dados a partir do ano em `START_DATE`,
 não considerando o mês e o dia.
 
 ### Enviando os dados para o _Radar Legislativo_
