@@ -19,7 +19,7 @@ class SenadoSpider(BillSpider):
     urls = {
         'list': (
             'http://legis.senado.leg.br/dadosabertos/'
-            'materia/pesquisa/lista?sigla={}&tramitando=S&dataInicioApresentacao={}'
+            'materia/tramitando?sigla={}&ano={}'
         ),
         'detail':  'http://legis.senado.leg.br/dadosabertos/materia/{}',
         'authorship': 'http://legis.senado.leg.br/dadosabertos/materia/autoria/{}',
@@ -33,16 +33,13 @@ class SenadoSpider(BillSpider):
     def start_requests(self):
         start_date = date.fromisoformat(settings.START_DATE)
         years = range(start_date.year, date.today().year + 1)
-        dates = (date(year, 1, 1) for year in years)
         url = self.urls['list']
-        for start_at, subject in product(dates, self.subjects):
-            if start_at.year == start_date.year:
-                start_at = start_date
-            yield Request(url=url.format(subject, start_at.strftime("%Y%m%d")))
+        for year, subject in product(years, self.subjects):
+            yield Request(url=url.format(subject, year))
 
     def parse(self, response):
         """Parser para página que lista todos os PLS."""
-        codes = response.xpath('//Codigo/text()').extract()
+        codes = response.xpath('//CodigoMateria/text()').extract()
         for code in codes:
             yield Request(
                 url=self.urls['detail'].format(code),
